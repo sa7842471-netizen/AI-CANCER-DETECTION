@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Powered Multi-Cancer Detection System</title>
+  <meta name="description" content="An integrated AI platform combining multiple deep learning models for detecting nine cancer types with Explainable AI, NLP chatbot, and robust cybersecurity." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <span class="logo-icon">⬡</span>
+      <span>OncoAI</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#cancers">Cancers</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#methodology">Methodology</a></li>
+      <li><a href="#tech">Tech Stack</a></li>
+      <li><a href="#timeline">Timeline</a></li>
+      <li><a href="#outcomes">Outcomes</a></li>
+      <li><a href="#demo" style="color:var(--accent3);font-weight:700">▶ Demo</a></li>
+    </ul>
+    <a href="#demo" class="nav-cta">Try AI Demo</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg">
+    <div class="hero-orb orb1"></div>
+    <div class="hero-orb orb2"></div>
+    <div class="hero-orb orb3"></div>
+    <div class="grid-lines"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">Major Project Report · B.Tech CSE (AI & ML)</div>
+    <h1>AI-Powered<br /><span class="gradient-text">Multi-Cancer</span><br />Detection System</h1>
+    <p class="hero-sub">An integrated deep learning platform detecting <strong>9 cancer types</strong> with Explainable AI, NLP chatbot powered by <strong>LLaMA 3.3-70B</strong>, and enterprise-grade cybersecurity — bridging India's oncologist accessibility gap.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">9</span><span class="stat-label">Cancer Types</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">5</span><span class="stat-label">AI Models</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">&lt;2s</span><span class="stat-label">Inference Time</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">99.5%</span><span class="stat-label">Uptime SLA</span></div>
+    </div>
+    <div class="hero-btns">
+      <a href="#overview" class="btn-primary">Explore Project</a>
+      <a href="#architecture" class="btn-ghost">System Architecture</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="dna-ring">
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="ring r3"></div>
+      <div class="ring-center">
+        <div class="ring-icon">🧬</div>
+        <div class="ring-label">OncoAI</div>
+      </div>
+      <div class="orbit-dot d1"></div>
+      <div class="orbit-dot d2"></div>
+      <div class="orbit-dot d3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="container">
+    <div class="section-tag">Project Overview</div>
+    <h2 class="section-title">Solving India's Cancer Diagnostic Crisis</h2>
+    <p class="section-sub">India diagnosed 1.46 million new cancer cases in 2022 with only 2,000 trained oncologists for 1.4 billion people. This platform bridges that gap.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="prob-icon">🔬</div>
+        <h3>Single-Cancer Tools</h3>
+        <p>Existing AI tools (DeepMind, IBM Watson) are limited to one cancer type, causing fragmented workflows and missed multi-organ screenings.</p>
+        <div class="prob-badge bad">Limitation</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-icon">🏥</div>
+        <h3>Image-Only Systems</h3>
+        <p>Current clinical AI requires high-quality CT/MRI scans from hospital radiology — excluding patients in Tier-2 and Tier-3 cities.</p>
+        <div class="prob-badge bad">Limitation</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-icon">🔒</div>
+        <h3>Black Box Models</h3>
+        <p>Most deep learning tools provide no explanations for predictions, a major barrier to clinical adoption and regulatory compliance.</p>
+        <div class="prob-badge bad">Limitation</div>
+      </div>
+      <div class="problem-card solution">
+        <div class="prob-icon">✅</div>
+        <h3>Our Solution</h3>
+        <p>Unified platform: 9 cancers, dual-input (image + text), Grad-CAM/LIME explainability, AI-IDS security, and LLaMA-3.1-70B chatbot.</p>
+        <div class="prob-badge good">Proposed System</div>
+      </div>
+    </div>
+
+    <div class="objectives">
+      <h3 class="objectives-title">Core Objectives</h3>
+      <div class="objectives-grid">
+        <div class="obj-item"><span class="obj-num">01</span><div><strong>Unified AI Platform</strong><p>Integrate CNN, EfficientNet-B0, ResNet50, DenseNet121 & VGG19 into one web-based application.</p></div></div>
+        <div class="obj-item"><span class="obj-num">02</span><div><strong>Cloud-Ready Deployment</strong><p>Containerized via Docker with independent microservice scaling per cancer model.</p></div></div>
+        <div class="obj-item"><span class="obj-num">03</span><div><strong>Explainable AI (XAI)</strong><p>Grad-CAM heatmaps and LIME explanations for every prediction to improve clinician trust.</p></div></div>
+        <div class="obj-item"><span class="obj-num">04</span><div><strong>DPDPA 2023 Compliance</strong><p>AI-IDS, OTP auth, JWT tokens, AES-256 encryption and RBAC for full data security.</p></div></div>
+        <div class="obj-item"><span class="obj-num">05</span><div><strong>NLP AI Chatbot</strong><p>LLaMA-3.1-70B-based 24/7 patient support with medical report analysis capabilities.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CANCER TYPES -->
+<section id="cancers">
+  <div class="container">
+    <div class="section-tag">Detection Engine</div>
+    <h2 class="section-title">9 Cancer Types Detected</h2>
+    <p class="section-sub">Each cancer type has an independently trained, purpose-optimized deep learning model with dedicated preprocessing pipelines.</p>
+    <div class="cancer-grid" id="cancerGrid"></div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="container">
+    <div class="section-tag">System Design</div>
+    <h2 class="section-title">Five-Layer System Architecture</h2>
+    <p class="section-sub">Client-server architecture with three primary tiers: Next.js frontend, Flask backend API, and Firebase data layer.</p>
+    <div class="arch-layers" id="archLayers"></div>
+
+    <div class="security-block">
+      <div class="sec-title-row">
+        <span class="sec-icon">🛡️</span>
+        <h3>Multi-Layer Security Architecture</h3>
+      </div>
+      <div class="sec-features">
+        <div class="sec-feat"><span>🤖</span><div><strong>AI-Based IDS</strong><p>Scapy + TensorFlow classifier monitors real-time network traffic and classifies packets as benign or malicious.</p></div></div>
+        <div class="sec-feat"><span>🔐</span><div><strong>OTP + JWT Auth</strong><p>Two-factor OTP authentication with JWT session tokens expiring after 30 minutes of inactivity.</p></div></div>
+        <div class="sec-feat"><span>🗄️</span><div><strong>AES-256 Encryption</strong><p>Firebase Encryption SDK protects all stored patient data with AES-256 encryption at rest.</p></div></div>
+        <div class="sec-feat"><span>👥</span><div><strong>RBAC</strong><p>Role-based access control ensures patients and specialists access only their authorized data.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<section id="methodology">
+  <div class="container">
+    <div class="section-tag">Development Approach</div>
+    <h2 class="section-title">Agile-Scrum Methodology — 6 Phases</h2>
+    <p class="section-sub">Development is broken into focused sprints, each delivering a specific testable component with sprint review cycles and continuous integration.</p>
+    <div class="phases-timeline" id="phasesTimeline"></div>
+
+    <div class="xai-block">
+      <div class="xai-left">
+        <h3>Explainable AI (XAI)</h3>
+        <p>Every prediction includes interpretable evidence to build clinician trust and meet regulatory requirements.</p>
+        <div class="xai-methods">
+          <div class="xai-method">
+            <div class="xai-m-head"><span class="xai-badge">Grad-CAM</span></div>
+            <p>Gradient-weighted Class Activation Mapping generates visual heatmaps highlighting cancer-indicative regions in the final convolutional layer.</p>
+          </div>
+          <div class="xai-method">
+            <div class="xai-m-head"><span class="xai-badge lime">LIME</span></div>
+            <p>Local Interpretable Model-Agnostic Explanations perturb superpixels to identify which image regions most influenced the model's decision.</p>
+          </div>
+        </div>
+      </div>
+      <div class="xai-right">
+        <div class="xai-visual">
+          <div class="xai-img-sim">
+            <div class="xai-sim-label">Input Image</div>
+            <div class="xai-sim-box plain"></div>
+          </div>
+          <div class="xai-arrow">→</div>
+          <div class="xai-img-sim">
+            <div class="xai-sim-label">Grad-CAM Heatmap</div>
+            <div class="xai-sim-box heatmap"></div>
+          </div>
+          <div class="xai-arrow">→</div>
+          <div class="xai-img-sim">
+            <div class="xai-sim-label">LIME Explanation</div>
+            <div class="xai-sim-box lime-box"></div>
+          </div>
+        </div>
+        <div class="xai-caption">Visual explainability pipeline per prediction</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="container">
+    <div class="section-tag">Technology Stack</div>
+    <h2 class="section-title">Seven-Layer Technology Stack</h2>
+    <p class="section-sub">Modern, production-ready technologies selected for performance, scalability, and healthcare compliance.</p>
+    <div class="tech-layers-wrap" id="techLayers"></div>
+  </div>
+</section>
+
+<!-- DATASETS -->
+<section id="datasets">
+  <div class="container">
+    <div class="section-tag">Training Data</div>
+    <h2 class="section-title">Public Medical Imaging Datasets</h2>
+    <p class="section-sub">Nine open-access datasets from Kaggle and public repositories, with stratified 80:10:10 train/validation/test splits.</p>
+    <div class="datasets-table-wrap">
+      <table class="datasets-table" id="datasetsTable">
+        <thead>
+          <tr><th>#</th><th>Cancer Type</th><th>Dataset</th><th>Images</th><th>Architecture</th></tr>
+        </thead>
+        <tbody id="datasetsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="container">
+    <div class="section-tag">Project Timeline</div>
+    <h2 class="section-title">Gantt Chart — 6-Phase Plan</h2>
+    <p class="section-sub">Agile-Scrum sprints with dedicated review cycles, unit testing, and integration testing milestones.</p>
+    <div class="gantt-wrap" id="ganttChart"></div>
+  </div>
+</section>
+
+<!-- OUTCOMES -->
+<section id="outcomes">
+  <div class="container">
+    <div class="section-tag">Expected Outcomes</div>
+    <h2 class="section-title">What This Platform Delivers</h2>
+    <div class="outcomes-grid" id="outcomesGrid"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ LIVE DEMO -->
+<section id="demo">
+  <div class="container">
+    <div class="section-tag">Live Demo</div>
+    <h2 class="section-title">Try the AI System</h2>
+    <p class="section-sub">Upload a medical image for cancer analysis, or describe symptoms. Powered by HuggingFace models + LLaMA 3.1-70B.</p>
+
+    <!-- API Key setup banner -->
+    <div class="api-banner" id="apiBanner">
+      <span>⚙️</span>
+      <div>
+        <strong>Setup required:</strong> Enter your free API keys below to activate the AI system.
+        Get them free at <a href="https://huggingface.co/settings/tokens" target="_blank">HuggingFace</a> and <a href="https://console.groq.com" target="_blank">Groq</a>.
+      </div>
+      <button class="btn-setup" onclick="toggleSetup()">Configure Keys</button>
+    </div>
+
+    <div class="setup-panel" id="setupPanel" style="display:none">
+      <div class="setup-grid">
+        <div class="setup-field">
+          <label>HuggingFace Token (for cancer image models)</label>
+          <input type="password" id="hfToken" placeholder="hf_..." />
+        </div>
+        <div class="setup-field">
+          <label>Groq API Key (for chatbot &amp; symptom checker)</label>
+          <input type="password" id="groqKey" placeholder="gsk_..." />
+        </div>
+      </div>
+      <div style="display:flex;gap:1rem;margin-top:1rem">
+        <button class="btn-primary" onclick="saveKeys()">Save Keys &amp; Test Connection</button>
+        <span id="connStatus" class="conn-status"></span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="demo-tabs">
+      <button class="demo-tab active" onclick="switchTab('image',this)">🔬 Image Analysis</button>
+      <button class="demo-tab" onclick="switchTab('symptom',this)">📋 Symptom Checker</button>
+    </div>
+
+    <!-- Tab: Image Analysis -->
+    <div class="tab-content" id="tab-image">
+      <div class="demo-grid">
+        <div class="demo-left">
+          <div class="field-group">
+            <label class="field-label">Cancer Type</label>
+            <select id="cancerTypeSelect" class="demo-select">
+              <option value="brain">🧠 Brain Tumor (MRI)</option>
+              <option value="lung">🫁 Lung Cancer (CT / X-Ray)</option>
+              <option value="breast">🍶 Breast Cancer (Ultrasound)</option>
+              <option value="colorectal">🔬 Colorectal (Histopathology)</option>
+              <option value="skin" selected>🩺 Skin Cancer (Dermoscopy)</option>
+              <option value="cervical">🧬 Cervical Cancer (Pap Smear)</option>
+              <option value="kidney">🫘 Kidney Cancer (CT Scan)</option>
+              <option value="oral">💊 Oral Cancer (Clinical Image)</option>
+            </select>
+          </div>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imgInput').click()">
+            <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImageSelect(event)" />
+            <div class="upload-placeholder" id="uploadPlaceholder">
+              <div class="upload-icon">📁</div>
+              <p>Click to upload or drag &amp; drop</p>
+              <span>JPEG / PNG / DICOM supported</span>
+            </div>
+            <img id="previewImg" class="preview-img" style="display:none" />
+          </div>
+          <button class="btn-primary full-btn" id="analyzeBtn" onclick="analyzeImage()" disabled>
+            <span id="analyzeBtnText">Analyse Image</span>
+          </button>
+        </div>
+
+        <div class="demo-right">
+          <div class="result-placeholder" id="resultPlaceholder">
+            <div style="font-size:3rem">🔍</div>
+            <p>Results will appear here after analysis</p>
+          </div>
+          <div class="result-panel" id="resultPanel" style="display:none">
+            <div class="risk-badge-row">
+              <span id="riskBadge" class="risk-badge">—</span>
+              <span id="topLabel" class="top-label">—</span>
+              <span id="topScore" class="top-score">—</span>
+            </div>
+            <div class="conf-bars" id="confBars"></div>
+            <div class="gradcam-block" id="gradcamBlock" style="display:none">
+              <div class="gradcam-label">Grad-CAM Heatmap</div>
+              <img id="gradcamImg" class="gradcam-img" />
+            </div>
+            <div class="model-tag" id="modelTag"></div>
+            <p class="result-disclaimer">⚠️ For research/educational use only. Not a medical diagnosis.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Symptom Checker -->
+    <div class="tab-content" id="tab-symptom" style="display:none">
+      <div class="symptom-wrap">
+        <div class="field-group">
+          <label class="field-label">Describe your symptoms in detail</label>
+          <textarea id="symptomsInput" class="symptom-textarea" rows="5"
+            placeholder="e.g. persistent cough for 3 weeks, blood in sputum, unexplained weight loss of 5kg, fatigue, night sweats…"></textarea>
+        </div>
+        <button class="btn-primary" onclick="checkSymptoms()">
+          <span id="symptomBtnText">Analyse Symptoms</span>
+        </button>
+        <div id="symptomResult" class="symptom-result" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ CHATBOT -->
+<div class="chat-fab" id="chatFab" onclick="toggleChat()" title="Open AI Chatbot">
+  <span class="chat-fab-icon">💬</span>
+  <span class="chat-fab-badge" id="chatBadge" style="display:none">1</span>
+</div>
+
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="chat-avatar">🤖</div>
+      <div>
+        <div class="chat-name">OncoAI Assistant</div>
+        <div class="chat-status" id="chatStatus">● Online · LLaMA 3.3-70B</div>
+      </div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot">
+      <div class="msg-bubble">👋 Hi! I'm OncoAI, your oncology AI assistant. I can help you understand cancer types, symptoms, diagnostic procedures, treatment options, and how to interpret AI predictions. What would you like to know?</div>
+    </div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" class="chat-input" placeholder="Ask about cancer, symptoms, results…"
+           onkeydown="if(event.key==='Enter')sendMessage()" />
+    <button class="chat-send" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-logo"><span class="logo-icon">⬡</span> OncoAI</div>
+    <p class="footer-text">AI-Powered Multi-Cancer Detection System · Major Project · B.Tech CSE (AI &amp; ML)</p>
+    <p class="footer-sub">Built on PyTorch · Flask · Next.js · Firebase · Docker · LLaMA-3.1-70B</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
