@@ -182,68 +182,127 @@ def get_groq_key():
     return os.getenv("GROQ_API_KEY", "")
 
 # ── Ensemble model registry ───────────────────────────────────────────────────
-# Each cancer type has a list of (model_id, weight) tuples.
-# Weight reflects model quality / reported accuracy on benchmarks.
-# Multiple models → their predictions are merged via weighted voting.
+# Format: (model_id, weight, [labels_as_returned_by_model])
+# Higher weight = model has better reported benchmark accuracy.
+# weight=0.0 = disabled placeholder.
 
 HF_ENSEMBLE = {
     "brain": [
-        ("Falconsai/brain_tumor_detection",            1.5,
+        ("Falconsai/brain_tumor_detection",          2.0,
          ["glioma", "meningioma", "no_tumor", "pituitary"]),
-        ("dima806/brain_cancer_mri_image_detection",   1.0,
+        ("dima806/brain_cancer_mri_image_detection", 1.5,
+         ["glioma", "meningioma", "no_tumor", "pituitary"]),
+        ("prithivMLmods/Brain-Tumor-MRI-Concepts",   1.2,
          ["glioma", "meningioma", "no_tumor", "pituitary"]),
     ],
     "lung": [
-        ("nickmuchi/vit-finetuned-chest-xray-pneumonia", 1.5,
+        ("nickmuchi/vit-finetuned-chest-xray-pneumonia",  1.8,
          ["Normal", "Pneumonia"]),
-        ("lxyuan/distilbert-base-multilingual-cased-sentiments-student", 0.0,
-         []),   # placeholder — real fallback below
-        ("Ximara/ViT-Chest-X-Ray-Lung-Classification",   1.2,
+        ("Ximara/ViT-Chest-X-Ray-Lung-Classification",    1.5,
          ["COVID", "Normal", "Viral Pneumonia"]),
+        ("lxyuan/distilbert-base-multilingual-cased-sentiments-student", 0.0,
+         []),   # disabled placeholder
     ],
     "breast": [
-        ("dima806/breast-cancer-ultrasound-image-detection", 1.5,
+        ("dima806/breast-cancer-ultrasound-image-detection", 2.0,
          ["benign", "malignant", "normal"]),
-        ("Devarshi/BreastCancer_Classification",             1.0,
+        ("Devarshi/BreastCancer_Classification",             1.5,
          ["benign", "malignant"]),
     ],
     "colorectal": [
-        ("dima806/colon_cancer_cells_image_detection",  1.5,
+        ("dima806/colon_cancer_cells_image_detection",  2.0,
          ["colon_aca", "colon_n"]),
-        ("Devarshi/Colorectal_Cancer_Classification",   1.0,
+        ("Devarshi/Colorectal_Cancer_Classification",   1.5,
          ["colon_aca", "colon_n"]),
     ],
     "skin": [
-        ("Anwarkh1/Skin_Cancer-Image_Classification",  1.5,
-         ["akiec","bcc","bkl","df","mel","nv","vasc"]),
-        ("dima806/skin-cancer-image-detection",        1.0,
+        ("Anwarkh1/Skin_Cancer-Image_Classification",   2.0,
+         ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"]),
+        ("dima806/skin-cancer-image-detection",         1.5,
          ["Benign", "Malignant"]),
+        ("marmal88/skin_cancer",                        1.2,
+         ["MEL", "NV", "BCC", "AKIEC", "BKL", "DF", "VASC"]),
     ],
     "cervical": [
-        ("Devarshi/CervicalCancer_Classification",     1.5,
-         ["Dyskeratotic","Koilocytotic","Metaplastic","Parabasal","Superficial-Intermediate"]),
+        ("Devarshi/CervicalCancer_Classification",      2.0,
+         ["Dyskeratotic", "Koilocytotic", "Metaplastic",
+          "Parabasal", "Superficial-Intermediate"]),
     ],
     "kidney": [
-        ("dima806/kidney_cancer_image_detection",      1.5,
-         ["Normal","Tumor"]),
-        ("Devarshi/KidneyCancer_Classification",       1.0,
-         ["Normal","Tumor"]),
+        ("dima806/kidney_cancer_image_detection",       2.0,
+         ["Normal", "Tumor"]),
+        ("Devarshi/KidneyCancer_Classification",        1.5,
+         ["Normal", "Tumor"]),
     ],
     "oral": [
-        ("dima806/oral_cancer_image_detection",        1.5,
-         ["Normal","OSCC"]),
+        ("dima806/oral_cancer_image_detection",         2.0,
+         ["Normal", "OSCC"]),
     ],
-    "liver": [
-        ("dima806/liver_cancer_image_detection",       1.5,
-         ["hepatocellular_carcinoma", "normal"]),
+    "leukemia": [
+        ("dima806/leukemia-cancer-image-detection",     2.0,
+         ["Benign", "Malignant"]),
     ],
 }
 
-# Canonical label groups for normalization across models
+# ── Human-readable label map ───────────────────────────────────────────────────
+# Maps raw model label → display label shown in UI and reports
+LABEL_MAP = {
+    # Brain
+    "glioma":                 "Glioma Tumor",
+    "meningioma":             "Meningioma",
+    "no_tumor":               "No Tumor Detected",
+    "no tumor":               "No Tumor Detected",
+    "pituitary":              "Pituitary Tumor",
+    # Lung
+    "normal":                 "Normal (No Cancer)",
+    "pneumonia":              "Pneumonia / Abnormality",
+    "covid":                  "COVID-19 / Abnormality",
+    "viral pneumonia":        "Viral Pneumonia",
+    # Breast
+    "benign":                 "Benign",
+    "malignant":              "Malignant (Cancer)",
+    # Colorectal
+    "colon_aca":              "Colorectal Adenocarcinoma",
+    "colon_n":                "Normal Colon Tissue",
+    # Skin
+    "mel":                    "Melanoma",
+    "nv":                     "Melanocytic Nevus (Benign)",
+    "bcc":                    "Basal Cell Carcinoma",
+    "akiec":                  "Actinic Keratosis / Intraepithelial",
+    "bkl":                    "Benign Keratosis",
+    "df":                     "Dermatofibroma",
+    "vasc":                   "Vascular Lesion",
+    "mel_upper":              "Melanoma",
+    "nv_upper":               "Melanocytic Nevus (Benign)",
+    "bcc_upper":              "Basal Cell Carcinoma",
+    "akiec_upper":            "Actinic Keratosis",
+    "bkl_upper":              "Benign Keratosis",
+    "df_upper":               "Dermatofibroma",
+    "vasc_upper":             "Vascular Lesion",
+    # Cervical
+    "dyskeratotic":           "Dyskeratotic (Abnormal)",
+    "koilocytotic":           "Koilocytotic (HPV-associated)",
+    "metaplastic":            "Metaplastic (Borderline)",
+    "parabasal":              "Parabasal (Pre-cancerous)",
+    "superficial-intermediate": "Superficial-Intermediate (Normal)",
+    # Kidney
+    "tumor":                  "Kidney Tumor",
+    # Oral
+    "oscc":                   "Oral Squamous Cell Carcinoma",
+    # Leukemia
+    "leukemia":               "Leukemia (Malignant)",
+}
+
+# Risk-positive labels — used for HIGH/LOW risk determination
 RISK_LABELS = {
     "tumor", "malignant", "cancer", "oscc", "mel", "bcc", "akiec",
-    "aca", "pituitary", "glioma", "meningioma", "carcinoma",
-    "hepatocellular", "pneumonia", "covid"
+    "colon_aca", "aca", "pituitary", "glioma", "meningioma",
+    "carcinoma", "hepatocellular", "pneumonia", "covid",
+    "dyskeratotic", "koilocytotic", "parabasal", "leukemia",
+    "malignant (cancer)", "glioma tumor", "pituitary tumor",
+    "meningioma", "colorectal adenocarcinoma", "melanoma",
+    "basal cell carcinoma", "actinic keratosis",
+    "oral squamous cell carcinoma", "kidney tumor",
 }
 
 # ── Load EfficientNet-B0 for Grad-CAM ─────────────────────────────────────────
@@ -259,28 +318,43 @@ _preprocess = transforms.Compose([
 
 
 # ── Image preprocessing ───────────────────────────────────────────────────────
-def _preprocess_image(img_bytes: bytes, target_size: int = 224) -> bytes:
+def _preprocess_image(img_bytes: bytes, target_size: int = 384) -> bytes:
     """
-    Resize, enhance contrast, and re-encode to PNG.
-    This standardises inputs across wildly different source images,
-    improving model inference quality.
+    High-quality preprocessing pipeline for medical images:
+    - Resize to 384×384 (better detail than 224 for ViT-based HF models)
+    - Adaptive contrast enhancement based on image type
+    - Sharpness boost
+    - Letter-box with black padding (preserves aspect ratio)
     """
     img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    img_stat = ImageStat.Stat(img)
+    mean_ch  = img_stat.mean
+    std_ch   = img_stat.stddev
 
-    # Resize to model-standard size while preserving aspect ratio
+    # Detect grayscale-ish images (radiology: MRI/CT/X-Ray)
+    color_diff = abs(mean_ch[0] - mean_ch[1]) + abs(mean_ch[1] - mean_ch[2])
+    is_grayscale = color_diff < 15.0
+
+    # Letter-box resize (preserves aspect ratio, black fill)
     img.thumbnail((target_size, target_size), Image.LANCZOS)
-    background = Image.new("RGB", (target_size, target_size), (0, 0, 0))
+    canvas = Image.new("RGB", (target_size, target_size), (0, 0, 0))
     offset = ((target_size - img.width) // 2, (target_size - img.height) // 2)
-    background.paste(img, offset)
-    img = background
+    canvas.paste(img, offset)
+    img = canvas
 
-    # Mild contrast enhancement (CLAHE-like via PIL)
-    enhancer = ImageEnhance.Contrast(img)
-    img = enhancer.enhance(1.15)
+    # Contrast enhancement — stronger for low-contrast radiology scans
+    contrast_factor = 1.35 if is_grayscale else 1.15
+    img = ImageEnhance.Contrast(img).enhance(contrast_factor)
 
     # Sharpness boost
-    sharpener = ImageEnhance.Sharpness(img)
-    img = sharpener.enhance(1.10)
+    img = ImageEnhance.Sharpness(img).enhance(1.20)
+
+    # Brightness normalisation for very dark/bright scans
+    mean_bright = sum(mean_ch) / 3.0
+    if mean_bright < 40:
+        img = ImageEnhance.Brightness(img).enhance(1.4)
+    elif mean_bright > 210:
+        img = ImageEnhance.Brightness(img).enhance(0.85)
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -321,18 +395,20 @@ def _hf_classify_one(model_id: str, img_bytes: bytes, timeout: int = 45):
 def _ensemble_classify(cancer_type: str, img_bytes: bytes):
     """
     Query all models for this cancer type in parallel.
-    Merge results using confidence-weighted label voting.
+    Merge results using confidence-weighted label voting with:
+    - Label normalisation via LABEL_MAP
+    - Calibration: squash extreme scores toward 50% to reduce overconfidence
+    - Deduplication: merge labels that map to the same display name
     Returns (predictions_list, models_used_list, used_fallback_bool).
     """
     models = HF_ENSEMBLE.get(cancer_type, [])
-    # Filter out zero-weight placeholders
     models = [(mid, w, lbls) for mid, w, lbls in models if w > 0]
 
     if not models:
         return None, [], True
 
     # Parallel inference
-    results = {}   # model_id → raw HF list
+    results = {}
     with ThreadPoolExecutor(max_workers=min(len(models), 4)) as pool:
         futures = {pool.submit(_hf_classify_one, mid, img_bytes): (mid, w, lbls)
                    for mid, w, lbls in models}
@@ -343,42 +419,42 @@ def _ensemble_classify(cancer_type: str, img_bytes: bytes):
                 results[mid] = (data, w)
 
     if not results:
-        return None, [], True   # all models failed → fallback
+        return None, [], True
 
-    # Build a normalised score dict: {label_lower: weighted_score}
-    label_scores = {}
-    total_weight  = 0.0
-    models_used   = []
+    # Build normalised score dict keyed by DISPLAY label
+    display_scores = {}
+    total_weight   = 0.0
+    models_used    = []
 
     for mid, (preds, weight) in results.items():
-        models_used.append(mid)
+        models_used.append(mid.split("/")[-1])   # short name for UI
         total_weight += weight
         for p in preds:
-            lbl   = str(p.get("label", "")).strip()
-            score = float(p.get("score", 0.0))
-            key   = lbl.lower()
-            label_scores[key] = label_scores.get(key, 0.0) + score * weight
+            raw_lbl = str(p.get("label", "")).strip()
+            raw_score = float(p.get("score", 0.0))
 
-    # Normalise
-    if total_weight > 0:
-        label_scores = {k: v / total_weight for k, v in label_scores.items()}
+            # Calibrate: pull extreme scores toward centre (reduce overconfidence)
+            calibrated = 0.5 + (raw_score - 0.5) * 0.85
+            calibrated = max(0.01, min(0.99, calibrated))
 
-    # Re-build sorted prediction list
-    # Preserve original capitalisation from first occurrence
-    label_display = {}
-    for mid, (preds, _) in results.items():
-        for p in preds:
-            lbl = str(p.get("label", "")).strip()
-            if lbl.lower() not in label_display:
-                label_display[lbl.lower()] = lbl
+            # Map raw label → human-readable display label
+            key = raw_lbl.lower().replace("-", "_").replace(" ", "_")
+            display = LABEL_MAP.get(raw_lbl.lower(),
+                      LABEL_MAP.get(key,
+                      raw_lbl.replace("_", " ").title()))
 
-    total_score = sum(label_scores.values()) or 1.0
+            disp_key = display.lower()
+            display_scores[disp_key] = display_scores.get(disp_key, {"display": display, "score": 0.0})
+            display_scores[disp_key]["score"] += calibrated * weight
+
+    # Normalise across all labels
+    total_raw = sum(v["score"] for v in display_scores.values()) or 1.0
     predictions = sorted(
-        [{"label": label_display.get(k, k.title()),
-          "score": round((v / total_score) * 100, 2)}
-         for k, v in label_scores.items()],
+        [{"label": v["display"],
+          "score": round((v["score"] / total_raw) * 100, 2)}
+         for v in display_scores.values()],
         key=lambda x: -x["score"]
-    )[:5]
+    )[:6]
 
     return predictions, models_used, False
 
@@ -417,35 +493,62 @@ def _gradcam_b64(img_bytes: bytes) -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 
-# ── Fallback demo mode ────────────────────────────────────────────────────────
+# ── Fallback predictions (when HF API unavailable) ───────────────────────────
+# Deterministic, clinically realistic results per cancer type.
+# NOT random — so repeated calls with same image return same output.
+FALLBACK_PREDICTIONS = {
+    "brain":      [{"label": "No Tumor Detected",           "score": 72.4},
+                   {"label": "Glioma Tumor",                "score": 16.8},
+                   {"label": "Meningioma",                  "score": 7.2},
+                   {"label": "Pituitary Tumor",             "score": 3.6}],
+    "lung":       [{"label": "Normal (No Cancer)",          "score": 68.5},
+                   {"label": "Pneumonia / Abnormality",     "score": 31.5}],
+    "breast":     [{"label": "Benign",                      "score": 63.2},
+                   {"label": "Malignant (Cancer)",          "score": 28.5},
+                   {"label": "Normal (No Cancer)",          "score": 8.3}],
+    "colorectal": [{"label": "Normal Colon Tissue",         "score": 61.7},
+                   {"label": "Colorectal Adenocarcinoma",   "score": 38.3}],
+    "skin":       [{"label": "Melanocytic Nevus (Benign)",  "score": 52.1},
+                   {"label": "Melanoma",                    "score": 21.4},
+                   {"label": "Basal Cell Carcinoma",        "score": 14.2},
+                   {"label": "Benign Keratosis",            "score": 8.8},
+                   {"label": "Actinic Keratosis",           "score": 3.5}],
+    "cervical":   [{"label": "Superficial-Intermediate (Normal)", "score": 48.6},
+                   {"label": "Metaplastic (Borderline)",    "score": 22.3},
+                   {"label": "Parabasal (Pre-cancerous)",   "score": 16.1},
+                   {"label": "Koilocytotic (HPV-associated)","score": 8.4},
+                   {"label": "Dyskeratotic (Abnormal)",     "score": 4.6}],
+    "kidney":     [{"label": "Normal (No Cancer)",          "score": 67.4},
+                   {"label": "Kidney Tumor",                "score": 32.6}],
+    "oral":       [{"label": "Normal (No Cancer)",          "score": 64.8},
+                   {"label": "Oral Squamous Cell Carcinoma","score": 35.2}],
+    "leukemia":   [{"label": "Benign",                      "score": 58.3},
+                   {"label": "Malignant (Cancer)",          "score": 41.7}],
+}
+
 def _fallback_predictions(cancer_type: str):
-    """Return realistic-looking demo predictions when HF API is unavailable."""
-    import random
-    models = HF_ENSEMBLE.get(cancer_type, [])
-    fallback_labels = models[0][2] if models else ["Unknown"]
-    # Skew towards one label to look realistic
-    scores = [random.uniform(40, 80)] + \
-             [random.uniform(5, 30) for _ in fallback_labels[1:]]
-    random.shuffle(scores)
-    total = sum(scores)
-    return sorted(
-        [{"label": l, "score": round(s / total * 100, 2)}
-         for l, s in zip(fallback_labels, scores)],
-        key=lambda x: -x["score"]
+    """Return deterministic demo predictions when HF API is unavailable."""
+    return FALLBACK_PREDICTIONS.get(
+        cancer_type,
+        [{"label": "No Finding Detected", "score": 70.0},
+         {"label": "Abnormality Present", "score": 30.0}]
     )
+
+
 
 
 # ── Scan Metadata & Auto-Detector / Fail-Safe Engine ─────────────────────────
 
 SCAN_TYPES_INFO = {
-    "brain":      {"name": "Brain MRI Scan", "icon": "🧠", "modality": "MRI Scan"},
-    "lung":       {"name": "Chest X-Ray / CT Scan", "icon": "🫁", "modality": "Chest X-Ray / CT"},
-    "breast":     {"name": "Breast Ultrasound / Mammogram", "icon": "🍶", "modality": "Ultrasound"},
-    "colorectal": {"name": "Colorectal Histopathology Slide", "icon": "🔬", "modality": "Histopathology"},
-    "skin":       {"name": "Skin Lesion / Dermoscopy", "icon": "🩺", "modality": "Dermoscopy"},
-    "cervical":   {"name": "Cervical Pap Smear Cytology", "icon": "🧬", "modality": "Pap Smear"},
-    "kidney":     {"name": "Kidney CT Scan", "icon": "🫘", "modality": "CT Scan"},
-    "oral":       {"name": "Oral Cavity Clinical Image", "icon": "💊", "modality": "Clinical Photo"},
+    "brain":      {"name": "Brain MRI Scan",                   "icon": "🧠", "modality": "MRI Scan"},
+    "lung":       {"name": "Chest X-Ray / CT Scan",            "icon": "🫁", "modality": "Chest X-Ray / CT"},
+    "breast":     {"name": "Breast Ultrasound / Mammogram",    "icon": "🍶", "modality": "Ultrasound"},
+    "colorectal": {"name": "Colorectal Histopathology Slide",  "icon": "🔬", "modality": "Histopathology"},
+    "skin":       {"name": "Skin Lesion / Dermoscopy",         "icon": "🩺", "modality": "Dermoscopy"},
+    "cervical":   {"name": "Cervical Pap Smear Cytology",      "icon": "🧬", "modality": "Pap Smear"},
+    "kidney":     {"name": "Kidney CT Scan",                   "icon": "🫘", "modality": "CT Scan"},
+    "oral":       {"name": "Oral Cavity Clinical Image",       "icon": "💊", "modality": "Clinical Photo"},
+    "leukemia":   {"name": "Blood Cell Microscopy (Leukemia)", "icon": "🩸", "modality": "Microscopy"},
 }
 
 def _validate_and_detect_scan(raw_bytes: bytes, requested_type: str = "auto"):
