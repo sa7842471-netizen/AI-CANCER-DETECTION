@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Powered Multi-Cancer Detection System</title>
+  <meta name="description" content="An integrated AI platform combining multiple deep learning models for detecting nine cancer types with Explainable AI, NLP chatbot, and robust cybersecurity." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    function openAuthModal() {
+      var m = document.getElementById('authModal');
+      if (m) m.style.display = 'flex';
+    }
+    function closeAuthModal() {
+      var m = document.getElementById('authModal');
+      if (m) m.style.display = 'none';
+    }
+    function openAdminModal() {
+      var m = document.getElementById('adminModal');
+      if (m) m.style.display = 'flex';
+      if (window.fetchAdminRecords) window.fetchAdminRecords();
+    }
+    function closeAdminModal() {
+      var m = document.getElementById('adminModal');
+      if (m) m.style.display = 'none';
+    }
+  </script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <span class="logo-icon">⬡</span>
+      <span>OncoAI Diagnostics</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#cancers">AI Detection Engines</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#tech">Tech Stack</a></li>
+      <li><a href="#outcomes">Platform Value</a></li>
+      <li><a href="#demo" style="color:var(--accent3);font-weight:700">▶ Launch Studio</a></li>
+    </ul>
+    <div class="nav-auth-wrap">
+      <span class="nav-user-badge" id="navUserBadge">👤 Guest</span>
+      <button class="nav-admin-btn" id="adminNavBtn" style="display:none" onclick="openAdminModal()">🛡️ Admin Panel</button>
+      <button class="nav-auth-btn" id="authBtn" onclick="openAuthModal()">🔑 Sign In</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg">
+    <div class="hero-orb orb1"></div>
+    <div class="hero-orb orb2"></div>
+    <div class="hero-orb orb3"></div>
+    <div class="grid-lines"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">Enterprise Clinical Diagnostic Platform</div>
+    <h1>AI-Powered<br /><span class="gradient-text">Multi-Cancer</span><br />Detection System</h1>
+    <p class="hero-sub">An integrated enterprise AI platform detecting <strong>9 cancer types</strong> with Explainable AI (Grad-CAM), NLP clinical assistant powered by <strong>LLaMA 3.3-70B</strong>, and persistent patient record storage.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">9</span><span class="stat-label">Cancer Types</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">5</span><span class="stat-label">AI Ensembles</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">&lt;2s</span><span class="stat-label">Inference Speed</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">99.5%</span><span class="stat-label">Uptime SLA</span></div>
+    </div>
+    <div class="hero-btns">
+      <a href="#demo" class="btn-primary">Launch Diagnostic Studio</a>
+      <button onclick="openAuthModal()" class="btn-ghost">🔑 Sign In / Portal</button>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="dna-ring">
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="ring r3"></div>
+      <div class="ring-center">
+        <div class="ring-icon">🧬</div>
+        <div class="ring-label">OncoAI</div>
+      </div>
+      <div class="orbit-dot d1"></div>
+      <div class="orbit-dot d2"></div>
+      <div class="orbit-dot d3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="container">
+    <div class="section-tag">Platform Overview</div>
+    <h2 class="section-title">Next-Generation Clinical Diagnostic Intelligence</h2>
+    <p class="section-sub">Empowering oncologists, radiologists, and clinicians with unified multi-cancer imaging AI, automated scan modality recognition, and real-time Fail-Safe protection.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="prob-icon">🔬</div>
+        <h3>Single-Cancer Fragmentation</h3>
+        <p>Traditional diagnostic AI software is limited to single organs, causing fragmented workflows and missed multi-organ screenings.</p>
+        <div class="prob-badge bad">Industry Issue</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-icon">🏥</div>
+        <h3>Imaging Access Barriers</h3>
+        <p>Radiology infrastructure is scarce in regional clinics, delaying critical early-stage oncological detection.</p>
+        <div class="prob-badge bad">Industry Issue</div>
+      </div>
+      <div class="problem-card">
+        <div class="prob-icon">🔒</div>
+        <h3>Black-Box AI Models</h3>
+        <p>Most neural networks lack visual explanation heatmaps, creating clinician distrust and regulatory friction.</p>
+        <div class="prob-badge bad">Industry Issue</div>
+      </div>
+      <div class="problem-card solution">
+        <div class="prob-icon">✅</div>
+        <h3>The OncoAI Platform</h3>
+        <p>Unified diagnostic suite: 9 cancer modalities, dual-input studio (image + text), Grad-CAM heatmaps, and role-based SQLite database storage.</p>
+        <div class="prob-badge good">Enterprise System</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CANCER TYPES -->
+<section id="cancers">
+  <div class="container">
+    <div class="section-tag">Detection Engines</div>
+    <h2 class="section-title">9 Supported Cancer Modalities</h2>
+    <p class="section-sub">Each cancer modality features a fine-tuned deep learning model with automated scan recognition and Grad-CAM visual heatmaps.</p>
+    <div class="cancer-grid" id="cancerGrid"></div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="container">
+    <div class="section-tag">System Architecture</div>
+    <h2 class="section-title">Enterprise System Architecture</h2>
+    <p class="section-sub">Scalable client-server architecture with high-performance Flask API backend and persistent patient database layer.</p>
+    <div class="arch-layers" id="archLayers"></div>
+
+    <div class="security-block">
+      <div class="sec-title-row">
+        <span class="sec-icon">🛡️</span>
+        <h3>Enterprise Security &amp; Compliance Architecture</h3>
+      </div>
+      <div class="sec-features">
+        <div class="sec-feat"><span>🤖</span><div><strong>Fail-Safe Out-Of-Distribution Shield</strong><p>EfficientNet-B0 classifier automatically detects and blocks non-medical image uploads in real time.</p></div></div>
+        <div class="sec-feat"><span>🔐</span><div><strong>Password Protection &amp; Auth</strong><p>SHA-256 password hashing with role-based access control (Admin/Specialist vs Patient modes).</p></div></div>
+        <div class="sec-feat"><span>🗄️</span><div><strong>Persistent SQLite Database</strong><p>All patient scans, AI diagnoses, and security audit logs are stored securely in local database tables.</p></div></div>
+        <div class="sec-feat"><span>👥</span><div><strong>Role-Based Access Control (RBAC)</strong><p>Specialists access the Control Center to review stored records while patients view personal scan results.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="container">
+    <div class="section-tag">Technology Stack</div>
+    <h2 class="section-title">Production Technology Stack</h2>
+    <p class="section-sub">Modern technologies chosen for speed, reliability, explainability, and healthcare data security.</p>
+    <div class="tech-layers-wrap" id="techLayers"></div>
+  </div>
+</section>
+
+<!-- OUTCOMES -->
+<section id="outcomes">
+  <div class="container">
+    <div class="section-tag">Platform Impact</div>
+    <h2 class="section-title">Enterprise Value &amp; Impact</h2>
+    <div class="outcomes-grid" id="outcomesGrid"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ LIVE DEMO -->
+<section id="demo">
+  <div class="container">
+    <div class="section-tag">Live Demo</div>
+    <h2 class="section-title">Try the AI System</h2>
+    <p class="section-sub">Upload a medical image for cancer analysis, or describe symptoms. Powered by HuggingFace models + LLaMA 3.1-70B.</p>
+
+    <!-- API Key setup banner -->
+    <div class="api-banner" id="apiBanner">
+      <span>⚙️</span>
+      <div>
+        <strong>Setup required:</strong> Enter your free API keys below to activate the AI system.
+        Get them free at <a href="https://huggingface.co/settings/tokens" target="_blank">HuggingFace</a> and <a href="https://console.groq.com" target="_blank">Groq</a>.
+      </div>
+      <button class="btn-setup" onclick="toggleSetup()">Configure Keys</button>
+    </div>
+
+    <div class="setup-panel" id="setupPanel" style="display:none">
+      <div class="setup-grid">
+        <div class="setup-field">
+          <label>HuggingFace Token (for cancer image models)</label>
+          <input type="password" id="hfToken" placeholder="hf_..." />
+        </div>
+        <div class="setup-field">
+          <label>Groq API Key (for chatbot &amp; symptom checker)</label>
+          <input type="password" id="groqKey" placeholder="gsk_..." />
+        </div>
+      </div>
+      <div style="display:flex;gap:1rem;margin-top:1rem">
+        <button class="btn-primary" onclick="saveKeys()">Save Keys &amp; Test Connection</button>
+        <span id="connStatus" class="conn-status"></span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="demo-tabs">
+      <button class="demo-tab active" onclick="switchTab('image',this)">🔬 Image Analysis</button>
+      <button class="demo-tab" onclick="switchTab('symptom',this)">📋 Symptom Checker</button>
+    </div>
+
+    <!-- Tab: Image Analysis -->
+    <div class="tab-content" id="tab-image">
+      <div class="demo-grid">
+        <div class="demo-left">
+          <!-- Automated Multi-Cancer AI Engine Active Banner -->
+          <div class="auto-engine-card">
+            <div class="auto-engine-header">
+              <span class="auto-engine-icon">⚡</span>
+              <div>
+                <strong class="auto-engine-title">Automatic Multi-Cancer Detection Active</strong>
+                <span class="auto-engine-sub">AI Auto-Routes to Optimal Model · No Manual Selection Required</span>
+              </div>
+            </div>
+            <p class="auto-engine-desc">Upload any medical image (Brain MRI, Chest CT/X-Ray, Breast Ultrasound, Dermoscopy, Pap Smear, Histopathology, etc.). The Fail-Safe Shield automatically verifies medical authenticity and routes the scan to the corresponding AI ensemble model.</p>
+          </div>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imgInput').click()">
+            <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImageSelect(event)" />
+            <div class="upload-placeholder" id="uploadPlaceholder">
+              <div class="upload-icon">📁</div>
+              <p>Click to upload or drag &amp; drop</p>
+              <span>JPEG / PNG / DICOM supported</span>
+            </div>
+            <img id="previewImg" class="preview-img" style="display:none" />
+          </div>
+          <button class="btn-primary full-btn" id="analyzeBtn" onclick="analyzeImage()" disabled>
+            <span id="analyzeBtnText">Analyse Image</span>
+          </button>
+        </div>
+
+        <div class="demo-right">
+          <div class="result-placeholder" id="resultPlaceholder">
+            <div style="font-size:3rem">🔍</div>
+            <p>Results will appear here after analysis</p>
+          </div>
+
+          <!-- Fail-Safe Rejection Alert -->
+          <div class="failsafe-alert" id="failsafeAlert" style="display:none">
+            <div class="failsafe-icon">🛑</div>
+            <div class="failsafe-content">
+              <h4>Fail-Safe Shield Activated</h4>
+              <p id="failsafeMsg">Non-medical image detected. Please upload a valid medical scan or clinical image.</p>
+            </div>
+          </div>
+
+          <div class="result-panel" id="resultPanel" style="display:none">
+            <!-- Auto-Detected Scan Badge -->
+            <div class="auto-scan-badge" id="autoScanBadge" style="display:none"></div>
+
+            <div class="risk-badge-row">
+              <span id="riskBadge" class="risk-badge">—</span>
+              <span id="topLabel" class="top-label">—</span>
+              <span id="topScore" class="top-score">—</span>
+            </div>
+            <div class="conf-bars" id="confBars"></div>
+            <div class="gradcam-block" id="gradcamBlock" style="display:none">
+              <div class="gradcam-label">Grad-CAM Heatmap</div>
+              <img id="gradcamImg" class="gradcam-img" />
+            </div>
+            <div class="model-tag" id="modelTag"></div>
+            <p class="result-disclaimer">⚠️ For research/educational use only. Not a medical diagnosis.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Symptom Checker -->
+    <div class="tab-content" id="tab-symptom" style="display:none">
+      <div class="symptom-wrap">
+        <div class="field-group">
+          <label class="field-label">Describe your symptoms in detail</label>
+          <textarea id="symptomsInput" class="symptom-textarea" rows="5"
+            placeholder="e.g. persistent cough for 3 weeks, blood in sputum, unexplained weight loss of 5kg, fatigue, night sweats…"></textarea>
+        </div>
+        <button class="btn-primary" onclick="checkSymptoms()">
+          <span id="symptomBtnText">Analyse Symptoms</span>
+        </button>
+        <div id="symptomResult" class="symptom-result" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ CHATBOT -->
+<div class="chat-fab" id="chatFab" onclick="toggleChat()" title="Open AI Chatbot">
+  <span class="chat-fab-icon">💬</span>
+  <span class="chat-fab-badge" id="chatBadge" style="display:none">1</span>
+</div>
+
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="chat-avatar">🤖</div>
+      <div>
+        <div class="chat-name">OncoAI Assistant</div>
+        <div class="chat-status" id="chatStatus">● Online · LLaMA 3.3-70B</div>
+      </div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot">
+      <div class="msg-bubble">👋 Hi! I'm OncoAI, your oncology AI assistant. I can help you understand cancer types, symptoms, diagnostic procedures, treatment options, and how to interpret AI predictions. What would you like to know?</div>
+    </div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" class="chat-input" placeholder="Ask about cancer, symptoms, results…"
+           onkeydown="if(event.key==='Enter')sendMessage()" />
+    <button class="chat-send" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-logo"><span class="logo-icon">⬡</span> OncoAI</div>
+    <p class="footer-text">AI-Powered Multi-Cancer Detection System · Major Project · B.Tech CSE (AI &amp; ML)</p>
+    <p class="footer-sub">Built on PyTorch · Flask · Next.js · Firebase · Docker · LLaMA-3.1-70B</p>
+  </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal" style="display:none">
+  <div class="auth-card">
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">🔑 Sign In</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">📝 Register</button>
+    </div>
+    
+    <!-- Quick Demo Logins -->
+    <div class="quick-demo-btns">
+      <button class="btn-demo-admin" onclick="quickLogin('admin')">⚡ Quick Login as Admin</button>
+      <button class="btn-demo-patient" onclick="quickLogin('patient')">⚡ Quick Login as Patient</button>
+    </div>
+    
+    <form id="authForm" onsubmit="handleAuthSubmit(event)">
+      <div class="auth-field" id="fullNameField" style="display:none">
+        <label class="field-label">Full Name</label>
+        <input type="text" id="authFullName" class="setup-field-input" placeholder="e.g. Dr. A. Sharma" />
+      </div>
+      <div class="auth-field">
+        <label class="field-label">Username</label>
+        <input type="text" id="authUsername" class="setup-field-input" placeholder="Enter username" required />
+      </div>
+      <div class="auth-field">
+        <label class="field-label">Password</label>
+        <input type="password" id="authPassword" class="setup-field-input" placeholder="••••••••" required />
+      </div>
+      <div class="auth-field" id="roleField" style="display:none">
+        <label class="field-label">Account Role</label>
+        <select id="authRole" class="auth-select">
+          <option value="patient">👤 Patient Mode</option>
+          <option value="admin">🛡️ Administrator / Specialist Mode</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary full-btn" style="margin-top:1rem" id="authSubmitBtn">Sign In</button>
+    </form>
+    <div id="authStatus" class="auth-status-msg"></div>
+  </div>
+</div>
+
+<!-- ADMIN DASHBOARD MODAL -->
+<div class="modal-overlay" id="adminModal" style="display:none">
+  <div class="admin-panel-card">
+    <div class="admin-panel-header">
+      <div>
+        <h2 style="color:#fff;font-size:1.4rem">🛡️ Administrator &amp; Specialist Control Center</h2>
+        <p style="color:var(--muted);font-size:0.85rem">Persistent Patient Scan Database &amp; Security Audit Logs</p>
+      </div>
+      <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    </div>
+    
+    <!-- Admin Metrics -->
+    <div class="admin-metrics-grid">
+      <div class="admin-metric-card">
+        <span class="admin-metric-val" id="metricTotalScans">0</span>
+        <span class="admin-metric-label">Total Stored Patient Scans</span>
+      </div>
+      <div class="admin-metric-card danger">
+        <span class="admin-metric-val" id="metricHighRisk">0</span>
+        <span class="admin-metric-label">High Risk Cases Detected</span>
+      </div>
+      <div class="admin-metric-card accent">
+        <span class="admin-metric-val" id="metricTotalUsers">0</span>
+        <span class="admin-metric-label">Registered Users</span>
+      </div>
+    </div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('scans', this)">📁 Stored Patient Scans</button>
+      <button class="admin-tab" onclick="switchAdminTab('audit', this)">🔒 Security Audit Logs</button>
+    </div>
+
+    <!-- Tab 1: Scans Table -->
+    <div class="admin-tab-content" id="adminTabScans">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Patient Name</th>
+              <th>Date / Time</th>
+              <th>Modality</th>
+              <th>AI Diagnosis</th>
+              <th>Score</th>
+              <th>Risk Level</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="adminScansTableBody">
+            <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">Loading stored records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 2: Audit Logs -->
+    <div class="admin-tab-content" id="adminTabAudit" style="display:none">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Action Event</th>
+              <th>Details</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="adminAuditTableBody">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted)">Loading audit logs...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

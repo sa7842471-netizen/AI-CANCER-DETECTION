@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# OncoAI Multi-Cancer Detection System — Backend Requirements
+# Batch 2026-27 | Odd Semester | 7th Sem — Phase-2 Final Review
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Core Web Framework ────────────────────────────────────────────────────────
+flask==3.0.3
+flask-cors==4.0.1
+python-dotenv==1.0.1
+
+# ── HTTP & Networking ─────────────────────────────────────────────────────────
+requests==2.32.3
+
+# ── Image Processing ──────────────────────────────────────────────────────────
+Pillow==10.4.0
+pydicom==2.4.4             # DICOM medical image support
+opencv-python-headless==4.10.0.84
+
+# ── Deep Learning (PyTorch — CPU/CUDA) ───────────────────────────────────────
+torch==2.3.1
+torchvision==0.18.1
+
+# ── Deep Learning (TensorFlow — AI-IDS module) ───────────────────────────────
+tensorflow==2.16.1
+scikit-learn==1.5.1        # NSL-KDD preprocessing + evaluation metrics
+
+# ── Explainability (LIME) ─────────────────────────────────────────────────────
+lime==0.2.0.1
+scikit-image==0.24.0
+
+# ── NLP / Transformers ────────────────────────────────────────────────────────
+transformers==4.43.3       # BERT symptom classifier
+groq==0.9.0                # LLaMA 3.1-70B via Groq API
+
+# ── Data & Visualisation ─────────────────────────────────────────────────────
+numpy==1.26.4
+pandas==2.2.2
+matplotlib==3.9.1
+
+# ── Security ─────────────────────────────────────────────────────────────────
+PyJWT==2.8.0               # JWT session management (30-min expiry)
+cryptography==43.0.1       # AES-256 encryption helpers
+bcrypt==4.2.0              # Password hashing (bcrypt, PBKDF2 upgrade)
+pyotp==2.9.0               # OTP / TOTP 2FA generation
+
+# ── Firebase ─────────────────────────────────────────────────────────────────
+firebase-admin==6.5.0      # Firestore + Storage
+
+# ── Network Monitoring (AI-IDS) ───────────────────────────────────────────────
+scapy==2.5.0               # Packet sniffing for intrusion detection
+
+# ── Reporting ────────────────────────────────────────────────────────────────
+reportlab==4.2.2           # PDF report generation
