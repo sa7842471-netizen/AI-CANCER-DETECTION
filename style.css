@@ -735,3 +735,39 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 2.
   transition: color 0.2s;
 }
 .otp-back-btn:hover { color: var(--accent); }
+
+/* ── Cancer Type Selector Card ───────────────────────────────────── */
+.scan-selector-card {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1rem;
+}
+.scan-selector-label {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.7rem; flex-wrap: wrap;
+}
+.scan-sel-icon { font-size: 1.2rem; }
+.scan-selector-label strong { color: #fff; font-size: 0.9rem; }
+.scan-sel-required {
+  font-size: 0.72rem; color: var(--accent3); font-weight: 700;
+  background: rgba(6,214,160,0.1); border: 1px solid rgba(6,214,160,0.25);
+  border-radius: 4px; padding: 0.1rem 0.45rem;
+}
+.cancer-type-select {
+  width: 100%; padding: 0.65rem 0.9rem;
+  background: var(--card); color: var(--text);
+  border: 1.5px solid var(--border); border-radius: 9px;
+  font-size: 0.88rem; font-family: 'Inter', sans-serif;
+  cursor: pointer; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: auto;
+}
+.cancer-type-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59,158,255,0.15);
+}
+.cancer-type-select optgroup { color: var(--muted); font-size: 0.78rem; }
+.cancer-type-select option  { background: var(--card); color: var(--text); }
+.scan-sel-tip {
+  margin-top: 0.55rem; font-size: 0.78rem; color: var(--muted);
+  line-height: 1.5;
+}

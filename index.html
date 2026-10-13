@@ -227,19 +227,37 @@
     <div class="tab-content" id="tab-image">
       <div class="demo-grid">
         <div class="demo-left">
-          <!-- Automated Multi-Cancer AI Engine Active Banner -->
-          <div class="auto-engine-card">
-            <div class="auto-engine-header">
-              <span class="auto-engine-icon">⚡</span>
-              <div>
-                <strong class="auto-engine-title">Automatic Multi-Cancer Detection Active</strong>
-                <span class="auto-engine-sub">AI Auto-Routes to Optimal Model · No Manual Selection Required</span>
-              </div>
+
+          <!-- Cancer Type Selector -->
+          <div class="scan-selector-card">
+            <div class="scan-selector-label">
+              <span class="scan-sel-icon">🎯</span>
+              <strong>Select Cancer Type / Scan Modality</strong>
+              <span class="scan-sel-required">Required for accurate results</span>
             </div>
-            <p class="auto-engine-desc">Upload any medical image (Brain MRI, Chest CT/X-Ray, Breast Ultrasound, Dermoscopy, Pap Smear, Histopathology, etc.). The Fail-Safe Shield automatically verifies medical authenticity and routes the scan to the corresponding AI ensemble model.</p>
+            <select id="cancerTypeSelect" class="cancer-type-select">
+              <option value="auto">⚡ Auto-Detect (AI will identify scan type)</option>
+              <optgroup label="── Radiology ──────────────────">
+                <option value="brain">🧠 Brain Tumor — MRI Scan</option>
+                <option value="lung">🫁 Lung Cancer — Chest X-Ray / CT Scan</option>
+                <option value="kidney">🫘 Kidney Cancer — CT Scan</option>
+                <option value="breast">🍶 Breast Cancer — Ultrasound / Mammogram</option>
+              </optgroup>
+              <optgroup label="── Histopathology ─────────────">
+                <option value="colorectal">🔬 Colorectal Cancer — Histopathology Slide</option>
+                <option value="cervical">🧬 Cervical Cancer — Pap Smear Cytology</option>
+                <option value="leukemia">🩸 Leukemia — Blood Cell Microscopy</option>
+              </optgroup>
+              <optgroup label="── Clinical / Dermoscopy ──────">
+                <option value="skin">🩺 Skin Cancer — Dermoscopy</option>
+                <option value="oral">💊 Oral Cancer — Clinical Photo</option>
+              </optgroup>
+            </select>
+            <div class="scan-sel-tip" id="scanSelTip">💡 <em>Choose the scan type matching your image for best accuracy. Auto-Detect works only for clearly distinct scan modalities.</em></div>
           </div>
+
           <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imgInput').click()">
-            <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImageSelect(event)" />
+            <input type="file" id="imgInput" accept="image/*,.dcm" style="display:none" onchange="handleImageSelect(event)" />
             <div class="upload-placeholder" id="uploadPlaceholder">
               <div class="upload-icon">📁</div>
               <p>Click to upload or drag &amp; drop</p>
