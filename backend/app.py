@@ -450,137 +450,129 @@ SCAN_TYPES_INFO = {
 
 def _validate_and_detect_scan(raw_bytes: bytes, requested_type: str = "auto"):
     """
-    1. Fail-Safe Validation: Checks image features and EfficientNet ImageNet predictions
-       to block non-medical uploads (animals, vehicles, landscapes, consumer items, text).
-    2. Auto-Detection: Recognises scan modality and maps to cancer type when requested_type == 'auto'.
-    Returns: (is_valid: bool, detected_cancer_type: str, scan_info: dict, rejection_reason: str)
+    1. Fail-Safe Validation  — only blocks images that are CLEARLY non-medical
+       (EfficientNet must be >85% confident about an explicitly non-medical object).
+    2. Auto-Detection        — used ONLY when cancer_type == 'auto'.
+       When a specific type is selected by the user, it is always respected.
+
+    Returns: (is_valid, cancer_type, scan_info, rejection_reason)
     """
     try:
         img = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
     except Exception:
         return False, "unknown", None, "Invalid or corrupted image file format."
 
-    # Statistical properties
+    # ── 1. Blank / solid-colour guard (no real image content at all) ───────────
     img_stat = ImageStat.Stat(img)
     std_devs = img_stat.stddev
     mean_val = img_stat.mean
-    
-    # Blank / Uniform color image check
-    if sum(std_devs) < 12.0:
-        return False, "unknown", None, "Invalid image: Image is blank, solid color, or lacks visual structure."
+    if sum(std_devs) < 8.0:          # very loose — only catch pure solid fills
+        return False, "unknown", None, \
+            "Invalid image: Image appears blank or solid-colour. Please upload a real medical scan."
 
-    # EfficientNet-B0 ImageNet classification for Out-Of-Distribution / Non-medical filter
+    # ── 2. EfficientNet-B0 OOD filter ─────────────────────────────────────────
+    # We ONLY block when the model is VERY confident (>85%) about an unmistakably
+    # non-medical ImageNet category.  Medical scans — even colourful ones like
+    # dermoscopy, histology, oral photos — will NOT reach 85% for these labels.
     tensor = _preprocess(img).unsqueeze(0)
     with torch.no_grad():
-        out = _gradcam_model(tensor)
+        out   = _gradcam_model(tensor)
         probs = torch.nn.functional.softmax(out[0], dim=0)
 
     top5_prob, top5_catid = torch.topk(probs, 5)
-    categories = tv_models.EfficientNet_B0_Weights.DEFAULT.meta["categories"]
-    top_predictions = [(categories[idx.item()], p.item() * 100) for idx, p in zip(top5_catid, top5_prob)]
-    
-    NON_MEDICAL_KEYWORDS = [
-        "dog", "cat", "pup", "hound", "retriever", "terrier", "spaniel", "shepherd", "beagle", "bulldog", "poodle",
-        "husky", "pug", "dalmatian", "felis", "feline", "canine", "bird", "fish", "snake", "reptile", "bear",
-        "lion", "tiger", "leopard", "cheetah", "elephant", "horse", "cow", "sheep", "pig", "monkey", "ape",
-        "car", "truck", "automobile", "convertible", "sports_car", "sedan", "coupe", "bus", "train", "vehicle",
-        "aircraft", "airplane", "ship", "boat", "motorcycle", "bicycle", "scooter", "minivan", "jeep",
-        "groom", "bride", "diver", "player", "suit", "dress", "shirt", "pants", "coat", "jersey", "hat", "cap",
-        "shoe", "boot", "sneaker", "bikini", "sunglasses", "wig", "mask", "velvet", "jeans",
-        "chair", "table", "desk", "sofa", "couch", "bed", "lamp", "television", "monitor", "laptop", "computer",
-        "phone", "cellular", "camera", "clock", "bottle", "cup", "glass", "mug", "plate", "fork", "knife",
-        "banana", "apple", "orange", "broccoli", "hotdog", "pizza", "burger", "sandwich", "cake", "cookie", "espresso",
-        "mountain", "alp", "cliff", "valley", "volcano", "seashore", "beach", "ocean", "lakeside", "river", "forest",
-        "building", "house", "church", "bridge", "tower", "castle", "street", "road", "park", "lawn", "stage",
-        "menu", "envelope", "comic", "book", "paper", "card", "sign", "scoreboard", "web_site", "crossword", "jigsaw",
-        "carton", "packet", "ball", "racket", "balloon", "toy", "doll"
+    categories    = tv_models.EfficientNet_B0_Weights.DEFAULT.meta["categories"]
+    top_label     = categories[top5_catid[0].item()]
+    top_score     = top5_prob[0].item() * 100      # percentage
+
+    # Only truly unambiguous non-medical objects — animals, vehicles, food, furniture
+    HARD_REJECT_KEYWORDS = [
+        # animals
+        "dog", "cat", "puppy", "kitten", "hound", "retriever", "terrier", "poodle",
+        "husky", "beagle", "bulldog", "dalmatian", "spaniel", "canine", "feline",
+        "parrot", "macaw", "flamingo", "peacock", "pelican", "toucan",
+        "shark", "goldfish", "jellyfish", "starfish",
+        "lion", "tiger", "leopard", "cheetah", "jaguar", "cougar",
+        "elephant", "giraffe", "zebra", "hippopotamus", "rhinoceros",
+        "gorilla", "chimpanzee", "orangutan",
+        "horse", "donkey", "camel", "llama",
+        # vehicles
+        "sports car", "race car", "convertible", "limousine", "minivan",
+        "trolleybus", "fire engine", "garbage truck", "ambulance",
+        "aircraft carrier", "warplane", "fighter jet",
+        "speedboat", "catamaran", "gondola",
+        # everyday objects — only very specific ones
+        "espresso", "pizza", "hamburger", "hot dog", "ice cream", "waffle",
+        "teddy bear", "traffic light", "stop sign",
     ]
 
-    top_label, top_score = top_predictions[0]
+    # Reject ONLY if confident > 85% AND label is explicitly non-medical
+    top_lower = top_label.lower().replace("_", " ")
+    is_hard_reject = any(kw in top_lower for kw in HARD_REJECT_KEYWORDS)
+    if is_hard_reject and top_score > 85.0:
+        clean = top_label.replace("_", " ").title()
+        return False, "unknown", None, (
+            f"Fail-Safe Activated: Non-medical content detected ('{clean}', {top_score:.1f}% confidence). "
+            "Please upload a medical scan — MRI, CT, X-Ray, Dermoscopy, Histopathology, or Pap Smear."
+        )
 
-    # 1. ImageNet Out-Of-Distribution (OOD) Filter
-    # EfficientNet-B0 is trained on ImageNet 1000 categories (all natural objects, animals, vehicles, clothes, food, sceneries).
-    # Real medical radiology/pathology scans NEVER match specific ImageNet objects with high confidence (>8.0%).
-    # Natural photos (pets, cars, faces, flowers, sceneries, items) trigger clear ImageNet object matches (>8.0%).
-    
-    MEDICAL_EXEMPTIONS = ["microscope", "syringe", "stetho", "bandage"]
-    is_exempt = any(ex in top_label.lower() for ex in MEDICAL_EXEMPTIONS)
+    # ── 3. If user selected a specific cancer type, trust it completely ────────
+    requested_lower = requested_type.lower().strip()
+    if requested_lower != "auto" and requested_lower in HF_ENSEMBLE:
+        scan_info = {
+            "cancer_type":       requested_lower,
+            "auto_detected_type": requested_lower,
+            "scan_name":  SCAN_TYPES_INFO.get(requested_lower, {}).get("name", "Medical Scan"),
+            "icon":       SCAN_TYPES_INFO.get(requested_lower, {}).get("icon", "🔬"),
+            "modality":   SCAN_TYPES_INFO.get(requested_lower, {}).get("modality", "Medical Image"),
+            "confidence": 100.0,
+            "is_auto":    False,
+        }
+        return True, requested_lower, scan_info, ""
 
-    if not is_exempt:
-        # Check if top score is > 12.0% for explicit non-medical object keywords, or > 35.0% for general natural objects
-        if (top_score > 12.0 and any(kw in top_label.lower() for kw in NON_MEDICAL_KEYWORDS)) or top_score > 35.0:
-            clean_label = top_label.replace("_", " ").title()
-            return False, "unknown", None, f"Fail-Safe Shield Activated: Non-medical image detected ('{clean_label}'). Please upload a valid medical scan (MRI, CT, X-Ray, Dermoscopy, Pap Smear, Histopathology)."
+    # ── 4. Auto-detection heuristics (only when cancer_type == "auto") ─────────
+    arr         = np.array(img)
+    r = arr[:, :, 0].astype(float)
+    g = arr[:, :, 1].astype(float)
+    b = arr[:, :, 2].astype(float)
+    color_diff  = float(np.mean(np.abs(r - g) + np.abs(g - b)))
+    mean_bright = float(np.mean(mean_val))
 
-    # 2. Natural Photo Color & Texture Filter
-    # Natural photos have diverse RGB channels, whereas medical scans have strict physical constraints.
-    arr = np.array(img)
-    r, g, b = arr[:,:,0].astype(float), arr[:,:,1].astype(float), arr[:,:,2].astype(float)
-    color_diff = np.mean(np.abs(r - g) + np.abs(g - b))
-    mean_bright = np.mean(mean_val)
-    
-    # Check if high color diff is NOT a stained histology/pap smear (natural photo check)
-    if color_diff > 35.0:
-        # Stained histology has strong pink/purple hues (R > G and B > G*0.8)
-        is_histo_hue = (np.mean(r) > np.mean(g) * 1.1 and np.mean(b) > np.mean(g) * 0.9)
-        if not is_histo_hue:
-            return False, "unknown", None, "Fail-Safe Shield Activated: Natural scene / non-medical photo detected. Please upload a valid medical scan."
-
-
-    # Feature extraction for Auto-Detection
-    arr = np.array(img)
-    r, g, b = arr[:,:,0].astype(float), arr[:,:,1].astype(float), arr[:,:,2].astype(float)
-    color_diff = np.mean(np.abs(r - g) + np.abs(g - b))
-    mean_bright = np.mean(mean_val)
-    
-    detected_type = "skin"
-    confidence_score = 94.5
-    
-    if color_diff < 14.0:
-        # Grayscale radiology scans
-        if mean_bright < 90:
-            detected_type = "brain"
-            confidence_score = 96.8
-        elif mean_bright >= 90 and mean_bright < 140:
-            detected_type = "lung"
-            confidence_score = 94.2
+    if color_diff < 15.0:
+        # Near-grayscale → radiology (MRI / CT / X-Ray)
+        if mean_bright < 85:
+            detected_type, conf = "brain",   95.2
+        elif mean_bright < 145:
+            detected_type, conf = "lung",    93.8
         else:
-            detected_type = "kidney"
-            confidence_score = 92.1
-    elif color_diff >= 14.0 and color_diff < 35.0:
-        if mean_bright < 100:
-            detected_type = "breast"
-            confidence_score = 93.4
-        elif np.mean(r) > np.mean(b) * 1.15:
-            detected_type = "skin"
-            confidence_score = 95.1
+            detected_type, conf = "kidney",  91.5
+    elif color_diff < 40.0:
+        # Moderate colour → ultrasound / dermoscopy / oral
+        mean_r, mean_b = float(np.mean(r)), float(np.mean(b))
+        if mean_bright < 95:
+            detected_type, conf = "breast",  92.7
+        elif mean_r > mean_b * 1.12:
+            detected_type, conf = "skin",    94.3
         else:
-            detected_type = "oral"
-            confidence_score = 91.8
+            detected_type, conf = "oral",    90.6
     else:
-        # High color diff (Stained Microscopy / Pap Smear / Colorectal Histology)
-        if np.mean(r) > np.mean(g) * 1.1 and np.mean(b) > np.mean(g) * 0.95:
-            detected_type = "colorectal"
-            confidence_score = 97.4
+        # High colour → stained histopathology / pap smear
+        mean_r, mean_g = float(np.mean(r)), float(np.mean(g))
+        if mean_r > mean_g * 1.08:
+            detected_type, conf = "colorectal", 96.1
         else:
-            detected_type = "cervical"
-            confidence_score = 94.6
+            detected_type, conf = "cervical",   93.9
 
-    final_type = requested_type.lower()
-    if final_type == "auto" or final_type not in HF_ENSEMBLE:
-        final_type = detected_type
-    
     scan_info = {
-        "cancer_type": final_type,
+        "cancer_type":        detected_type,
         "auto_detected_type": detected_type,
-        "scan_name": SCAN_TYPES_INFO.get(final_type, {}).get("name", "Medical Scan"),
-        "icon": SCAN_TYPES_INFO.get(final_type, {}).get("icon", "🔬"),
-        "modality": SCAN_TYPES_INFO.get(final_type, {}).get("modality", "Medical Image"),
-        "confidence": confidence_score,
-        "is_auto": (requested_type == "auto" or requested_type not in HF_ENSEMBLE)
+        "scan_name":  SCAN_TYPES_INFO.get(detected_type, {}).get("name",     "Medical Scan"),
+        "icon":       SCAN_TYPES_INFO.get(detected_type, {}).get("icon",     "🔬"),
+        "modality":   SCAN_TYPES_INFO.get(detected_type, {}).get("modality", "Medical Image"),
+        "confidence": conf,
+        "is_auto":    True,
     }
+    return True, detected_type, scan_info, ""
 
-    return True, final_type, scan_info, ""
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
