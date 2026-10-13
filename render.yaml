@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: oncoai-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements-deploy.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
+    envVars:
+      - key: HF_TOKEN
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        value: fb64faf8955fbd35fb363acfb61082344d3b634bb6da41dd37ed903e4c3517f2
+      - key: AES_ENCRYPTION_KEY
+        value: 431f1d95410ec3101202d313c16bf21c895843235223c1697f9b7e27a1c03706
+      - key: JWT_EXPIRY_MINUTES
+        value: '30'

@@ -205,7 +205,12 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ══════════════════════════════════════════════════════════════
    LIVE DEMO — state & helpers
 ══════════════════════════════════════════════════════════════ */
-const API = 'http://localhost:5000/api';
+/* ── API endpoint — auto-detects local vs deployed ────────── */
+const IS_LOCAL = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+const API = IS_LOCAL
+  ? 'http://localhost:5000/api'
+  : 'https://oncoai-backend.onrender.com/api';  // ← replace with your Render URL after deploying
+
 let chatHistory = [];   // [{role, content}]
 
 function toggleSetup() {
