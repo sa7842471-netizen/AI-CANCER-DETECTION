@@ -347,40 +347,83 @@
 <div class="modal-overlay" id="authModal" style="display:none">
   <div class="auth-card">
     <button class="modal-close" onclick="closeAuthModal()">✕</button>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">🔑 Sign In</button>
-      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">📝 Register</button>
+
+    <!-- ── STEP 1: Credentials ── -->
+    <div id="authStepCredentials">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">🔑 Sign In</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">📝 Register</button>
+      </div>
+
+      <!-- Quick Demo Logins -->
+      <div class="quick-demo-btns">
+        <button class="btn-demo-admin" onclick="quickLogin('admin')">⚡ Quick Login as Admin</button>
+        <button class="btn-demo-patient" onclick="quickLogin('patient')">⚡ Quick Login as Patient</button>
+      </div>
+
+      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <div class="auth-field" id="fullNameField" style="display:none">
+          <label class="field-label">Full Name</label>
+          <input type="text" id="authFullName" class="setup-field-input" placeholder="e.g. Dr. A. Sharma" />
+        </div>
+        <div class="auth-field">
+          <label class="field-label">Username</label>
+          <input type="text" id="authUsername" class="setup-field-input" placeholder="Enter username" required />
+        </div>
+        <div class="auth-field">
+          <label class="field-label">Password</label>
+          <input type="password" id="authPassword" class="setup-field-input" placeholder="••••••••" required />
+        </div>
+        <div class="auth-field" id="roleField" style="display:none">
+          <label class="field-label">Account Role</label>
+          <select id="authRole" class="auth-select">
+            <option value="patient">👤 Patient Mode</option>
+            <option value="admin">🛡️ Administrator / Specialist Mode</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary full-btn" style="margin-top:1rem" id="authSubmitBtn">Sign In</button>
+      </form>
+      <div id="authStatus" class="auth-status-msg"></div>
     </div>
-    
-    <!-- Quick Demo Logins -->
-    <div class="quick-demo-btns">
-      <button class="btn-demo-admin" onclick="quickLogin('admin')">⚡ Quick Login as Admin</button>
-      <button class="btn-demo-patient" onclick="quickLogin('patient')">⚡ Quick Login as Patient</button>
+
+    <!-- ── STEP 2: OTP Verification ── -->
+    <div id="authStepOtp" style="display:none">
+      <div class="otp-header">
+        <div class="otp-shield-icon">🔐</div>
+        <h3 class="otp-title">Two-Factor Authentication</h3>
+        <p class="otp-subtitle">Enter the 6-digit OTP sent to your registered contact.<br/>
+          <span style="color:var(--accent3);font-size:0.78rem">Demo mode: OTP is shown below after clicking Send OTP.</span>
+        </p>
+      </div>
+
+      <!-- OTP Display Box (demo only) -->
+      <div class="otp-demo-box" id="otpDemoBox" style="display:none">
+        <span class="otp-demo-label">📋 Your OTP (Demo Mode)</span>
+        <span class="otp-demo-code" id="otpDemoCode">------</span>
+        <span class="otp-demo-hint">In production this is sent via SMS/email only</span>
+      </div>
+
+      <!-- 6-digit OTP input boxes -->
+      <div class="otp-boxes" id="otpBoxes">
+        <input class="otp-box" id="otp0" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code" />
+        <input class="otp-box" id="otp1" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="otp-box" id="otp2" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="otp-box" id="otp3" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="otp-box" id="otp4" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        <input class="otp-box" id="otp5" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+      </div>
+
+      <div class="otp-actions">
+        <button class="btn-primary full-btn" onclick="submitOtp()" id="otpVerifyBtn">✅ Verify OTP &amp; Sign In</button>
+        <div class="otp-resend-row">
+          <button class="otp-resend-btn" id="otpResendBtn" onclick="sendOtp()" disabled>Resend OTP</button>
+          <span class="otp-timer" id="otpTimer">Wait <span id="otpCountdown">30</span>s</span>
+        </div>
+        <button class="otp-back-btn" onclick="otpGoBack()">← Back to Login</button>
+      </div>
+      <div id="otpStatus" class="auth-status-msg"></div>
     </div>
-    
-    <form id="authForm" onsubmit="handleAuthSubmit(event)">
-      <div class="auth-field" id="fullNameField" style="display:none">
-        <label class="field-label">Full Name</label>
-        <input type="text" id="authFullName" class="setup-field-input" placeholder="e.g. Dr. A. Sharma" />
-      </div>
-      <div class="auth-field">
-        <label class="field-label">Username</label>
-        <input type="text" id="authUsername" class="setup-field-input" placeholder="Enter username" required />
-      </div>
-      <div class="auth-field">
-        <label class="field-label">Password</label>
-        <input type="password" id="authPassword" class="setup-field-input" placeholder="••••••••" required />
-      </div>
-      <div class="auth-field" id="roleField" style="display:none">
-        <label class="field-label">Account Role</label>
-        <select id="authRole" class="auth-select">
-          <option value="patient">👤 Patient Mode</option>
-          <option value="admin">🛡️ Administrator / Specialist Mode</option>
-        </select>
-      </div>
-      <button type="submit" class="btn-primary full-btn" style="margin-top:1rem" id="authSubmitBtn">Sign In</button>
-    </form>
-    <div id="authStatus" class="auth-status-msg"></div>
+
   </div>
 </div>
 

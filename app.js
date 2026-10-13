@@ -558,21 +558,23 @@ function renderSymptomResult(data) {
 
 /* ── Chatbot ─────────────────────────────────────────────── */
 /* ══════════════════════════════════════════════════════════════
-   AUTHENTICATION & ADMINISTRATOR PANEL ENGINE
+   AUTHENTICATION & ADMINISTRATOR PANEL ENGINE  (OTP 2FA Flow)
 ══════════════════════════════════════════════════════════════ */
-let currentUser = JSON.parse(localStorage.getItem('onco_user')) || null;
-let currentAuthMode = 'login'; // 'login' or 'register'
+let currentUser     = JSON.parse(localStorage.getItem('onco_user')) || null;
+let currentAuthMode = 'login';
+let _otpUserId      = null;   // temp user_id between Step 1 and Step 2
+let _otpTimer       = null;   // setInterval handle for countdown
 
+/* ── Auth UI helpers ─────────────────────────────────────── */
 function updateAuthUI() {
-  const badge = document.getElementById('navUserBadge');
+  const badge    = document.getElementById('navUserBadge');
   const adminBtn = document.getElementById('adminNavBtn');
-  const authBtn = document.getElementById('authBtn');
-
+  const authBtn  = document.getElementById('authBtn');
   if (currentUser) {
-    const isSpecialist = currentUser.role === 'admin';
-    badge.textContent = `${isSpecialist ? '🛡️' : '👤'} ${currentUser.full_name || currentUser.username} (${isSpecialist ? 'Admin' : 'User'})`;
+    const isAdmin = currentUser.role === 'admin';
+    badge.textContent = `${isAdmin ? '🛡️' : '👤'} ${currentUser.full_name || currentUser.username} (${isAdmin ? 'Admin' : 'User'})`;
     badge.style.display = 'inline-block';
-    adminBtn.style.display = isSpecialist ? 'inline-block' : 'none';
+    adminBtn.style.display = isAdmin ? 'inline-block' : 'none';
     authBtn.textContent = 'Sign Out';
     authBtn.onclick = logout;
   } else {
@@ -587,30 +589,56 @@ function openAuthModal() {
   const modal = document.getElementById('authModal');
   if (modal) {
     modal.style.display = 'flex';
+    _showCredentialStep();
     document.getElementById('authStatus').textContent = '';
   }
 }
-
 function closeAuthModal() {
   const modal = document.getElementById('authModal');
   if (modal) modal.style.display = 'none';
+  _clearOtpTimer();
 }
 
-window.openAuthModal = openAuthModal;
+window.openAuthModal  = openAuthModal;
 window.closeAuthModal = closeAuthModal;
 window.openAdminModal = openAdminModal;
 window.closeAdminModal = closeAdminModal;
-window.quickLogin = quickLogin;
-window.switchAuthTab = switchAuthTab;
-window.logout = logout;
+window.quickLogin     = quickLogin;
+window.switchAuthTab  = switchAuthTab;
+window.logout         = logout;
+window.sendOtp        = sendOtp;
+window.submitOtp      = submitOtp;
+window.otpGoBack      = otpGoBack;
+
+/* ── Step switching ──────────────────────────────────────── */
+function _showCredentialStep() {
+  document.getElementById('authStepCredentials').style.display = 'block';
+  document.getElementById('authStepOtp').style.display         = 'none';
+}
+function _showOtpStep() {
+  document.getElementById('authStepCredentials').style.display = 'none';
+  document.getElementById('authStepOtp').style.display         = 'block';
+  _clearOtpBoxes();
+  document.getElementById('otpStatus').textContent = '';
+  document.getElementById('otpDemoBox').style.display = 'none';
+  document.getElementById('otp0').focus();
+  _startResendCountdown(30);
+  // Auto-request OTP as soon as OTP step opens
+  sendOtp();
+}
+function otpGoBack() {
+  _showCredentialStep();
+  _otpUserId = null;
+  _clearOtpTimer();
+}
 
 function switchAuthTab(mode) {
   currentAuthMode = mode;
   document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
   document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
   document.getElementById('fullNameField').style.display = mode === 'register' ? 'flex' : 'none';
-  document.getElementById('roleField').style.display = mode === 'register' ? 'flex' : 'none';
-  document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
+  document.getElementById('roleField').style.display     = mode === 'register' ? 'flex' : 'none';
+  document.getElementById('authSubmitBtn').textContent   = mode === 'login' ? 'Sign In' : 'Create Account';
   document.getElementById('authStatus').textContent = '';
 }
 
@@ -625,6 +653,7 @@ function quickLogin(role) {
   switchAuthTab('login');
 }
 
+/* ── STEP 1 — Verify credentials → trigger OTP ──────────── */
 async function handleAuthSubmit(e) {
   e.preventDefault();
   const username = document.getElementById('authUsername').value.trim();
@@ -633,47 +662,219 @@ async function handleAuthSubmit(e) {
   const role     = document.getElementById('authRole').value;
   const status   = document.getElementById('authStatus');
 
-  status.innerHTML = '⏳ Authenticating…';
+  if (currentAuthMode === 'register') {
+    // Registration stays single-step (no OTP for new accounts)
+    status.innerHTML = '⏳ Creating account…';
+    try {
+      const res  = await fetch(`${API}/auth/register`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, full_name: fullName, role })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
+      status.innerHTML = `<span style="color:#06d6a0">✓ Account created! Please sign in.</span>`;
+      switchAuthTab('login');
+    } catch (err) {
+      status.innerHTML = `<span style="color:var(--danger)">✗ ${err.message}</span>`;
+    }
+    return;
+  }
 
-  const endpoint = currentAuthMode === 'login' ? `${API}/auth/login` : `${API}/auth/register`;
-  const bodyData = currentAuthMode === 'login'
-    ? { username, password }
-    : { username, password, full_name: fullName, role };
-
+  // LOGIN → Step 1: verify credentials
+  status.innerHTML = '⏳ Verifying credentials…';
   try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bodyData)
+    const res  = await fetch(`${API}/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Authentication failed');
 
-    currentUser = data.user;
-    localStorage.setItem('onco_user', JSON.stringify(currentUser));
-    status.innerHTML = `<span style="color:#06d6a0">✓ Welcome, ${currentUser.full_name}!</span>`;
-    updateAuthUI();
-    setTimeout(closeAuthModal, 800);
+    if (data.requires_otp) {
+      _otpUserId = data.user_id;
+      status.innerHTML = `<span style="color:#06d6a0">✓ Credentials verified. Sending OTP…</span>`;
+      setTimeout(() => _showOtpStep(), 600);
+    } else {
+      // Fallback: server returned full login directly (shouldn't happen with new flow)
+      _finalizeLogin(data);
+    }
   } catch (err) {
-    console.warn("Backend auth unavailable, using client fallback auth:", err.message);
+    // Client-side fallback for demo when backend is offline
+    console.warn('Backend unavailable, using client fallback:', err.message);
     if (username === 'admin' && password === 'admin123') {
       currentUser = { id: 1, username: 'admin', role: 'admin', full_name: 'Dr. A. Sharma (Lead Specialist)' };
     } else {
       currentUser = { id: 2, username: username || 'patient', role: role || 'patient', full_name: fullName || 'Patient Account' };
     }
     localStorage.setItem('onco_user', JSON.stringify(currentUser));
-    status.innerHTML = `<span style="color:#06d6a0">✓ Signed in as ${currentUser.full_name}</span>`;
+    status.innerHTML = `<span style="color:#06d6a0">✓ Signed in (offline mode)</span>`;
     updateAuthUI();
-    setTimeout(closeAuthModal, 800);
+    setTimeout(closeAuthModal, 700);
   }
 }
 
+/* ── STEP 2a — Request OTP from server ───────────────────── */
+async function sendOtp() {
+  if (!_otpUserId) return;
+  const resendBtn  = document.getElementById('otpResendBtn');
+  const otpStatus  = document.getElementById('otpStatus');
+  resendBtn.disabled = true;
+  otpStatus.innerHTML = '⏳ Generating OTP…';
+
+  try {
+    const res  = await fetch(`${API}/auth/request-otp`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: _otpUserId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'OTP request failed');
+
+    otpStatus.innerHTML = `<span style="color:#06d6a0">✓ OTP sent! Valid for 5 minutes.</span>`;
+
+    // Demo mode: auto-reveal OTP and fill boxes
+    if (data.demo_otp) {
+      const demoBox  = document.getElementById('otpDemoBox');
+      const demoCode = document.getElementById('otpDemoCode');
+      demoCode.textContent = data.demo_otp;
+      demoBox.style.display = 'flex';
+      // Auto-fill the boxes for convenience
+      _fillOtpBoxes(data.demo_otp);
+    }
+    _startResendCountdown(30);
+  } catch (err) {
+    otpStatus.innerHTML = `<span style="color:var(--danger)">✗ ${err.message}</span>`;
+    resendBtn.disabled = false;
+  }
+}
+
+/* ── STEP 2b — Verify OTP → issue JWT ───────────────────── */
+async function submitOtp() {
+  const otp = _readOtpBoxes();
+  if (otp.length < 6) {
+    _shakeOtpBoxes();
+    document.getElementById('otpStatus').innerHTML =
+      `<span style="color:var(--danger)">✗ Please enter all 6 digits.</span>`;
+    return;
+  }
+
+  const btn = document.getElementById('otpVerifyBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Verifying…';
+  document.getElementById('otpStatus').innerHTML = '';
+
+  try {
+    const res  = await fetch(`${API}/auth/verify-otp`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: _otpUserId, otp })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'OTP verification failed');
+
+    _finalizeLogin(data);
+  } catch (err) {
+    _shakeOtpBoxes();
+    document.getElementById('otpStatus').innerHTML =
+      `<span style="color:var(--danger)">✗ ${err.message}</span>`;
+    btn.disabled = false;
+    btn.textContent = '✅ Verify OTP & Sign In';
+  }
+}
+
+/* ── Finalize login (store user + JWT, update UI) ────────── */
+function _finalizeLogin(data) {
+  currentUser = data.user;
+  if (data.token) localStorage.setItem('onco_jwt', data.token);
+  localStorage.setItem('onco_user', JSON.stringify(currentUser));
+  _clearOtpTimer();
+  updateAuthUI();
+  closeAuthModal();
+}
+
+/* ── OTP box helpers ─────────────────────────────────────── */
+function _readOtpBoxes() {
+  return [0,1,2,3,4,5].map(i => (document.getElementById(`otp${i}`)?.value || '')).join('').replace(/\D/g,'');
+}
+function _clearOtpBoxes() {
+  [0,1,2,3,4,5].forEach(i => {
+    const el = document.getElementById(`otp${i}`);
+    if (el) { el.value = ''; el.classList.remove('filled','error'); }
+  });
+}
+function _fillOtpBoxes(code) {
+  [...String(code).slice(0,6)].forEach((ch, i) => {
+    const el = document.getElementById(`otp${i}`);
+    if (el) { el.value = ch; el.classList.add('filled'); }
+  });
+}
+function _shakeOtpBoxes() {
+  [0,1,2,3,4,5].forEach(i => {
+    const el = document.getElementById(`otp${i}`);
+    if (!el) return;
+    el.classList.add('error');
+    setTimeout(() => el.classList.remove('error'), 400);
+  });
+}
+
+/* ── Resend countdown timer ──────────────────────────────── */
+function _clearOtpTimer() {
+  if (_otpTimer) { clearInterval(_otpTimer); _otpTimer = null; }
+}
+function _startResendCountdown(secs) {
+  _clearOtpTimer();
+  let remaining = secs;
+  const btn      = document.getElementById('otpResendBtn');
+  const countdown = document.getElementById('otpCountdown');
+  const timerEl   = document.getElementById('otpTimer');
+  if (!btn) return;
+  btn.disabled = true;
+  timerEl.style.display = 'inline';
+  countdown.textContent = remaining;
+  _otpTimer = setInterval(() => {
+    remaining--;
+    if (countdown) countdown.textContent = remaining;
+    if (remaining <= 0) {
+      _clearOtpTimer();
+      btn.disabled = false;
+      if (timerEl) timerEl.style.display = 'none';
+    }
+  }, 1000);
+}
+
+/* ── Wire OTP box auto-advance & backspace ───────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  [0,1,2,3,4,5].forEach(i => {
+    const el = document.getElementById(`otp${i}`);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      el.value = el.value.replace(/\D/g, '').slice(-1);
+      el.classList.toggle('filled', el.value !== '');
+      if (el.value && i < 5) document.getElementById(`otp${i+1}`)?.focus();
+    });
+    el.addEventListener('keydown', ev => {
+      if (ev.key === 'Backspace' && !el.value && i > 0) {
+        document.getElementById(`otp${i-1}`)?.focus();
+      }
+      if (ev.key === 'Enter') submitOtp();
+    });
+    el.addEventListener('paste', ev => {
+      ev.preventDefault();
+      const pasted = (ev.clipboardData.getData('text') || '').replace(/\D/g,'').slice(0,6);
+      _fillOtpBoxes(pasted);
+      document.getElementById(`otp${Math.min(pasted.length, 5)}`)?.focus();
+    });
+  });
+});
+
+/* ── Logout ──────────────────────────────────────────────── */
 function logout() {
   currentUser = null;
+  _otpUserId  = null;
   localStorage.removeItem('onco_user');
+  localStorage.removeItem('onco_jwt');
   updateAuthUI();
-  alert('You have logged out successfully.');
+  alert('You have been signed out successfully.');
 }
+
 
 /* Admin Panel Functions */
 function openAdminModal() {

@@ -111,6 +111,16 @@ def init_db():
             created_at TEXT
         )
     ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS otp_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            otp_code TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            used INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL
+        )
+    ''')
     def hash_pw(pw):
         return hashlib.sha256(pw.encode()).hexdigest()
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -774,6 +784,7 @@ def log_audit(username, action, details=""):
 
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
+    """Step 1 of 2FA: verify credentials → trigger OTP generation."""
     data     = request.get_json() or {}
     username = data.get("username", "").strip()
     password = data.get("password", "").strip()
@@ -792,25 +803,137 @@ def auth_login():
         return jsonify({"error": "Invalid username or password"}), 401
 
     stored_hash = row[4]
-    # Support both bcrypt (new) and SHA-256 legacy hashes
     pw_ok = verify_password(password, stored_hash)
     if not pw_ok:
-        # Legacy fallback: SHA-256
         pw_ok = (hashlib.sha256(password.encode()).hexdigest() == stored_hash)
 
     if not pw_ok:
         log_audit(username, "LOGIN_FAILED", "Invalid credentials")
         return jsonify({"error": "Invalid username or password"}), 401
 
-    user_id   = row[0]
-    user_data = {"id": user_id, "username": row[1], "role": row[2], "full_name": row[3]}
+    user_id = row[0]
+    log_audit(row[1], "OTP_TRIGGERED", f"Credentials verified for role: {row[2]}")
 
-    # Issue JWT (30-minute expiry)
-    token = generate_token(user_id=user_id, username=row[1], role=row[2])
+    # Credentials valid — require OTP step next
+    return jsonify({
+        "requires_otp": True,
+        "user_id":      user_id,
+        "username":     row[1],
+        "message":      "Credentials verified. Please request and enter your OTP to complete sign-in."
+    })
 
-    log_audit(row[1], "LOGIN_SUCCESS", f"Role: {row[2]} | JWT issued")
-    return jsonify({"message": "Login successful", "user": user_data, "token": token,
-                    "token_expiry_minutes": int(os.getenv('JWT_EXPIRY_MINUTES', '30'))})
+
+@app.route("/api/auth/request-otp", methods=["POST"])
+def request_otp():
+    """Step 2a: Generate a 6-digit OTP for the given user_id and return it (demo mode — no SMS)."""
+    import random, hmac as _hmac
+    data    = request.get_json() or {}
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+
+    conn = sqlite3.connect(DB_PATH)
+    c    = conn.cursor()
+    c.execute("SELECT id, username FROM users WHERE id = ?", (user_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"error": "User not found"}), 404
+
+    # Invalidate any previous unused OTPs for this user
+    c.execute("UPDATE otp_sessions SET used = 1 WHERE user_id = ? AND used = 0", (user_id,))
+
+    # Generate 6-digit OTP
+    otp_code   = f"{random.SystemRandom().randint(0, 999999):06d}"
+    now        = datetime.datetime.utcnow()
+    expires_at = (now + datetime.timedelta(minutes=5)).strftime("%Y-%m-%d %H:%M:%S")
+    created_at = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    c.execute(
+        "INSERT INTO otp_sessions (user_id, otp_code, expires_at, used, created_at) VALUES (?, ?, ?, 0, ?)",
+        (user_id, otp_code, expires_at, created_at)
+    )
+    conn.commit()
+    conn.close()
+
+    log_audit(row[1], "OTP_SENT", f"OTP generated, expires at {expires_at} UTC")
+    print(f"[OTP] User '{row[1]}' OTP: {otp_code} (expires {expires_at} UTC)")
+
+    # In production: send via Twilio SMS / email
+    # For demo / development: return OTP directly in response
+    return jsonify({
+        "message":      "OTP generated successfully. Check server console (demo mode).",
+        "otp_sent":     True,
+        "expires_in":   300,
+        # Demo only — remove in production when SMS/email is configured:
+        "demo_otp":     otp_code,
+        "demo_note":    "DEMO MODE: OTP shown here. In production this is sent via SMS/email only."
+    })
+
+
+@app.route("/api/auth/verify-otp", methods=["POST"])
+def verify_otp():
+    """Step 2b: Verify the 6-digit OTP → issue JWT on success."""
+    import hmac as _hmac
+    data     = request.get_json() or {}
+    user_id  = data.get("user_id")
+    otp_code = str(data.get("otp", "")).strip()
+
+    if not user_id or not otp_code:
+        return jsonify({"error": "user_id and otp are required"}), 400
+
+    now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect(DB_PATH)
+    c    = conn.cursor()
+
+    # Fetch latest unused OTP for this user that hasn't expired
+    c.execute("""
+        SELECT id, otp_code, expires_at FROM otp_sessions
+        WHERE user_id = ? AND used = 0 AND expires_at > ?
+        ORDER BY id DESC LIMIT 1
+    """, (user_id, now))
+    otp_row = c.fetchone()
+
+    if not otp_row:
+        conn.close()
+        log_audit(str(user_id), "OTP_FAILED", "No valid OTP found or OTP expired")
+        return jsonify({"error": "OTP expired or not found. Please request a new OTP."}), 401
+
+    otp_id, stored_otp, expires_at = otp_row
+
+    # Constant-time comparison to prevent timing attacks
+    if not _hmac.compare_digest(stored_otp, otp_code):
+        # Mark as used to prevent brute-force
+        c.execute("UPDATE otp_sessions SET used = 1 WHERE id = ?", (otp_id,))
+        conn.commit()
+        conn.close()
+        log_audit(str(user_id), "OTP_FAILED", "Incorrect OTP entered")
+        return jsonify({"error": "Incorrect OTP. Please try again."}), 401
+
+    # OTP correct — mark as used
+    c.execute("UPDATE otp_sessions SET used = 1 WHERE id = ?", (otp_id,))
+
+    # Fetch user details
+    c.execute("SELECT id, username, role, full_name FROM users WHERE id = ?", (user_id,))
+    user_row = c.fetchone()
+    conn.commit()
+    conn.close()
+
+    if not user_row:
+        return jsonify({"error": "User not found"}), 404
+
+    # Issue JWT
+    token = generate_token(user_id=user_row[0], username=user_row[1], role=user_row[2])
+    user_data = {"id": user_row[0], "username": user_row[1], "role": user_row[2], "full_name": user_row[3]}
+
+    log_audit(user_row[1], "OTP_LOGIN_SUCCESS", f"2FA complete | Role: {user_row[2]} | JWT issued")
+    return jsonify({
+        "message":              "OTP verified. Login successful.",
+        "user":                 user_data,
+        "token":                token,
+        "token_expiry_minutes": int(os.getenv('JWT_EXPIRY_MINUTES', '30'))
+    })
 
 
 @app.route("/api/auth/register", methods=["POST"])

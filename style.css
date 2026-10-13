@@ -655,4 +655,83 @@ footer { background: var(--bg); border-top: 1px solid var(--border); padding: 2.
 }
 .btn-del-record:hover { background: rgba(248,113,113,0.3); }
 
+/* ── OTP Step ──────────────────────────────────────────────────────── */
+#authStepOtp {
+  animation: slideInOtp 0.35s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideInOtp {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
+.otp-header { text-align: center; margin-bottom: 1.4rem; }
+.otp-shield-icon {
+  font-size: 2.8rem; display: block;
+  animation: pulse 1.8s infinite;
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+.otp-title {
+  color: #fff; font-size: 1.2rem; font-weight: 700; margin: 0.5rem 0 0.3rem;
+}
+.otp-subtitle {
+  color: var(--muted); font-size: 0.83rem; line-height: 1.5;
+}
+
+/* Demo OTP reveal box */
+.otp-demo-box {
+  display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+  background: rgba(6,214,160,0.08); border: 1px solid rgba(6,214,160,0.25);
+  border-radius: 10px; padding: 0.9rem 1rem; margin-bottom: 1.2rem;
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+.otp-demo-label { font-size: 0.72rem; color: var(--accent3); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.otp-demo-code  {
+  font-size: 2rem; font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; color: var(--accent3); letter-spacing: 0.35em;
+}
+.otp-demo-hint  { font-size: 0.68rem; color: var(--muted); }
+
+/* 6-box OTP input row */
+.otp-boxes {
+  display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.4rem;
+}
+.otp-box {
+  width: 46px; height: 54px;
+  background: var(--card2); border: 2px solid var(--border);
+  border-radius: 10px; color: #fff;
+  font-size: 1.5rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  text-align: center; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.otp-box:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59,158,255,0.2);
+  transform: scale(1.08);
+}
+.otp-box.filled { border-color: var(--accent3); }
+.otp-box.error  { border-color: var(--danger); animation: shake 0.3s ease; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)}
+}
+
+/* OTP actions */
+.otp-actions { display: flex; flex-direction: column; gap: 0.75rem; }
+.otp-resend-row { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 0.25rem; }
+.otp-resend-btn {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  padding: 0.3rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+  transition: all 0.2s;
+}
+.otp-resend-btn:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+.otp-resend-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.otp-timer { font-size: 0.78rem; color: var(--warn); font-weight: 600; }
+.otp-back-btn {
+  background: none; border: none; color: var(--muted); font-size: 0.8rem;
+  cursor: pointer; text-align: center; padding: 0.2rem;
+  transition: color 0.2s;
+}
+.otp-back-btn:hover { color: var(--accent); }
