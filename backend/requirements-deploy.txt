@@ -1,17 +1,29 @@
-# Lightweight deployment requirements for Render.com free tier
-# Excludes TensorFlow, Scapy, Firebase (heavy / OS-specific)
+﻿# OncoAI - Render.com deployment (lightweight, no PyTorch/TF)
+# Python 3.11
+
+# Core Web Framework
 flask==3.0.3
 flask-cors==4.0.1
 python-dotenv==1.0.1
+gunicorn==22.0.0
+
+# HTTP
 requests==2.32.3
+
+# Image Processing
 Pillow==10.4.0
-torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
-torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cpu
+
+# Data
 numpy==1.26.4
-matplotlib==3.9.1
+
+# AI / NLP
+groq==0.9.0
+
+# Security
 PyJWT==2.8.0
 cryptography==43.0.1
 bcrypt==4.2.0
 pyotp==2.9.0
-groq==0.9.0
-gunicorn==22.0.0
+
+# Reporting (PDF generation) - required by report_generator.py
+reportlab==4.2.2

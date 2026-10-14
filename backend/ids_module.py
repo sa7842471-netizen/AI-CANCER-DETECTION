@@ -48,11 +48,11 @@ except ImportError:
 
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-IDS_MODEL_PATH = os.getenv("IDS_MODEL_PATH", "backend/models/ids_nslkdd_model.h5")
-IDS_ALERT_LOG  = os.getenv("IDS_ALERT_LOG_PATH", "backend/logs/ids_alerts.log")
+IDS_MODEL_PATH = os.getenv("IDS_MODEL_PATH", os.path.join(os.path.dirname(__file__), "models", "ids_nslkdd_model.h5"))
+IDS_ALERT_LOG  = os.getenv("IDS_ALERT_LOG_PATH", os.path.join(os.path.dirname(__file__), "logs", "ids_alerts.log"))
 IFACE          = os.getenv("IDS_NETWORK_INTERFACE", "lo")
 
-os.makedirs(os.path.dirname(IDS_ALERT_LOG), exist_ok=True)
+os.makedirs(os.path.dirname(os.path.abspath(IDS_ALERT_LOG)), exist_ok=True)
 
 logging.basicConfig(
     filename=IDS_ALERT_LOG,
