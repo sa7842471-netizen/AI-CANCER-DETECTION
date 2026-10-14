@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: oncoai-backend
+    name: ai-cancer-detection
     runtime: python
     pythonVersion: "3.11.9"
     rootDir: backend
